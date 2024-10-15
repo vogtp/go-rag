@@ -59,7 +59,7 @@ func ollamaChat(ctx context.Context) error {
 		llms.TextParts(llms.ChatMessageTypeSystem, "You are a company branding design wizard."),
 		llms.TextParts(llms.ChatMessageTypeHuman, "What would be a good company name for a comapny that produces Go-backed LLM tools?"),
 	}
-	completion, err := llm.GenerateContent(ctx, content, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+	completion, err := llm.GenerateContent(ctx, content, llms.WithTemperature(0.001), llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 		fmt.Print(string(chunk))
 		return nil
 	}))
