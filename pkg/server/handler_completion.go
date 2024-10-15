@@ -80,7 +80,7 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 				return ctx.Err()
 			}
 			resChan <- chunk
-			slog.Info("stream response", "chunk", string(chunk))
+			slog.Debug("stream response", "chunk", string(chunk))
 			return nil
 		}))
 		if err != nil {
@@ -110,7 +110,7 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 				return false
 			}
 			// write
-			a.slog.Info("http stram", "chunk", chunk, "out", res.Choices[0].Delta.Content)
+			a.slog.Debug("http stram", "chunk", chunk, "out", res.Choices[0].Delta.Content)
 			data = append(data, paypload...)
 			data = append(data, []byte("\n\n")...)
 			_, err = w.Write(data)
