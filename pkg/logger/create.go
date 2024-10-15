@@ -22,6 +22,10 @@ func Create(lvl slog.Level) *slog.Logger {
 	}
 	logOpts.AddSource = viper.GetBool(cfg.LogSource)
 	logJson := viper.GetBool(cfg.LogJson)
+	if !(logJson || logOpts.AddSource) {
+		slog.SetLogLoggerLevel(lvl)
+		return slog.Default()
+	}
 	if logOpts.AddSource {
 		logOpts.ReplaceAttr = func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.SourceKey && len(groups) == 0 {
@@ -30,7 +34,6 @@ func Create(lvl slog.Level) *slog.Logger {
 			return a
 		}
 	}
-	slog.Default()
 	var logWriter io.Writer
 	logWriter = os.Stdout
 	var handler slog.Handler
@@ -40,7 +43,6 @@ func Create(lvl slog.Level) *slog.Logger {
 	}
 	sl := slog.New(handler)
 	slog.SetDefault(sl)
-
 	return sl
 }
 
