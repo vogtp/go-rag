@@ -17,9 +17,12 @@ func New() *cobra.Command {
 	logger.New()
 
 	addRoot()
+
+	addVecDB()
 	addOllama()
 	addchroma()
 	addTest()
+
 
 	return rootCmd
 }
