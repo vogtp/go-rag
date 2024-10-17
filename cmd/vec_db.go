@@ -31,7 +31,7 @@ var vecDbCmd = &cobra.Command{
 
 var vecDbEmbbedCmd = &cobra.Command{
 	Use: "embedd <collection> <path> <ollama_url>",
-	//Short: "create a modelfile  and build it automatically",
+	Short: "Embbed to content of a path to a collection",
 
 	Aliases: []string{"e", "create"},
 	Long:    ``,
@@ -64,7 +64,7 @@ func getOllamaHost(args []string) string {
 
 var vecDbSearchCmd = &cobra.Command{
 	Use: "search <collection> <path> <ollama_url>",
-	//Short: "create a modelfile  and build it automatically",
+	Short: "Search in a collection",
 
 	Aliases: []string{"s"},
 	Long:    ``,
@@ -97,9 +97,9 @@ var vecDbSearchCmd = &cobra.Command{
 
 var vecDbRmCmd = &cobra.Command{
 	Use: "rm  <collection>",
-	//Short: "create a modelfile  and build it automatically",
+	Short: "Delete collections.  Sepatate by space or use all to delete all",
 
-	Aliases: []string{"del", "remove"},
+	Aliases: []string{"del", "remove", "delete"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
@@ -108,6 +108,19 @@ var vecDbRmCmd = &cobra.Command{
 		client, err := vecdb.New(slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
+		}
+		if args[0] == "all" {
+			cols, err := client.ListCollections(cmd.Context())
+			if err != nil {
+				return err
+			}
+			for _, c := range cols {
+				slog.Info("Deleting collection", "name", c.Name)
+				if err := client.DeleteCollection(cmd.Context(), c.Name); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 		for _, a := range args {
 			if err := client.DeleteCollection(cmd.Context(), a); err != nil {
@@ -120,7 +133,7 @@ var vecDbRmCmd = &cobra.Command{
 
 var vecDbLsCmd = &cobra.Command{
 	Use: "ls",
-	//Short: "create a modelfile  and build it automatically",
+	Short: "List all collection",
 
 	Aliases: []string{"list", "show"},
 	Long:    ``,
