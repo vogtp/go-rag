@@ -21,7 +21,9 @@ func addchroma() {
 
 func chromaFlags() {
 	addFlagOllamaUrl(chromaCmd)
-	viper.BindPFlags(chromaCmd.Flags())
+	if err := viper.BindPFlags(chromaCmd.Flags()); err != nil {
+		slog.Warn("cannot bind chroma flags", "err", err)
+	}
 }
 
 var chromaCmd = &cobra.Command{
@@ -91,6 +93,9 @@ func chromaVecDB(ctx context.Context) error {
 		),
 		"City with a population of more than 5",
 	)
+	if err != nil {
+		return fmt.Errorf("cannot run chain: %w", err)
+	}
 	fmt.Println(result)
 	return nil
 }

@@ -17,7 +17,9 @@ func addOllama() {
 
 func ollamaFlags() {
 	addFlagOllamaUrl(ollamaCmd)
-	viper.BindPFlags(ollamaCmd.Flags())
+	if err := viper.BindPFlags(ollamaCmd.Flags()); err != nil {
+		slog.Error("Cannot bind ollama flags", "err", err)
+	}
 }
 
 const (

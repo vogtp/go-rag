@@ -17,7 +17,9 @@ func addTest() {
 
 func testFlags() {
 	testCmd.Flags().BoolP("test", "t", false, "Show version information")
-	viper.BindPFlags(testCmd.Flags())
+	if err:=viper.BindPFlags(testCmd.Flags());err!=nil{
+		slog.Warn("Cannot bind test cmd flags","err",err)
+	}
 }
 
 var testCmd = &cobra.Command{

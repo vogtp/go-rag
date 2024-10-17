@@ -99,14 +99,20 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 			// chunk, err := json.Marshal(res)
 			if chunk == nil {
 				a.slog.Warn("Stream error data is nil")
-				w.Write([]byte("data: [ERROR]\n\n"))
+				if _, err := w.Write([]byte("data: [ERROR]\n\n")); err != nil {
+					slog.Warn("Cannot write streaming bytes", "err", err)
+					return false
+				}
 				return false
 			}
 
 			res := generateChatStreamResponse(ragModel, chunk)
 			paypload, err := json.Marshal(res)
 			if err != nil {
-				w.Write([]byte("data: [ERROR]\n\n"))
+				if _, err := w.Write([]byte("data: [ERROR]\n\n")); err != nil {
+					slog.Warn("Cannot write streaming ERROR", "err", err)
+					return false
+				}
 				return false
 			}
 			// write
@@ -115,13 +121,19 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 			data = append(data, []byte("\n\n")...)
 			_, err = w.Write(data)
 			if err != nil {
-				w.Write([]byte("data: [ERROR]\n\n"))
+				if _, err := w.Write([]byte("data: [ERROR]\n\n")); err != nil {
+					slog.Warn("Cannot write streaming ERROR", "err", err)
+					return false
+				}
 				return false
 			}
 			return true
 		}
 		// done
-		w.Write([]byte("data: [DONE]\n\n"))
+		if _, err := w.Write([]byte("data: [DONE]\n\n")); err != nil {
+			slog.Warn("Cannot write streaming DONE", "err", err)
+			return false
+		}
 		a.slog.Debug("Finished streaming")
 		return false
 	})

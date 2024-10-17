@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,7 +14,9 @@ func addRoot() {
 
 func rootFlags() {
 	rootCmd.Flags().BoolP("version", "v", false, "Show version information")
-	viper.BindPFlags(rootCmd.Flags())
+	if err:=viper.BindPFlags(rootCmd.Flags()); err != nil{
+		slog.Warn("Cannot bind root flags","err",err)
+	}
 }
 
 var rootCmd = &cobra.Command{

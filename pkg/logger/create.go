@@ -34,8 +34,7 @@ func Create(lvl slog.Level) *slog.Logger {
 			return a
 		}
 	}
-	var logWriter io.Writer
-	logWriter = os.Stdout
+	var logWriter io.Writer = os.Stdout
 	var handler slog.Handler
 	handler = slog.NewTextHandler(logWriter, &logOpts)
 	if logJson {
