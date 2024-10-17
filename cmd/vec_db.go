@@ -16,6 +16,7 @@ func addVecDB() {
 	vecDbCmd.AddCommand(vecDbRmCmd)
 	vecDbCmd.AddCommand(vecDbLsCmd)
 	vecDbCmd.AddCommand(vecDbSearchCmd)
+	vecDbCmd.AddCommand(vecDbColLsCmd)
 }
 
 var vecDbCmd = &cobra.Command{
@@ -30,7 +31,7 @@ var vecDbCmd = &cobra.Command{
 }
 
 var vecDbEmbbedCmd = &cobra.Command{
-	Use: "embedd <collection> <path> <ollama_url>",
+	Use:   "embedd <collection> <path> <ollama_url>",
 	Short: "Embbed to content of a path to a collection",
 
 	Aliases: []string{"e", "create"},
@@ -63,7 +64,7 @@ func getOllamaHost(args []string) string {
 }
 
 var vecDbSearchCmd = &cobra.Command{
-	Use: "search <collection> <path> <ollama_url>",
+	Use:   "search <collection> <path> <ollama_url>",
 	Short: "Search in a collection",
 
 	Aliases: []string{"s"},
@@ -96,7 +97,7 @@ var vecDbSearchCmd = &cobra.Command{
 }
 
 var vecDbRmCmd = &cobra.Command{
-	Use: "rm  <collection>",
+	Use:   "rm  <collection>",
 	Short: "Delete collections.  Sepatate by space or use all to delete all",
 
 	Aliases: []string{"del", "remove", "delete"},
@@ -132,13 +133,12 @@ var vecDbRmCmd = &cobra.Command{
 }
 
 var vecDbLsCmd = &cobra.Command{
-	Use: "ls",
+	Use:   "ls",
 	Short: "List all collection",
 
 	Aliases: []string{"list", "show"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		client, err := vecdb.New(slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
@@ -150,6 +150,40 @@ var vecDbLsCmd = &cobra.Command{
 		for _, c := range cols {
 			fmt.Printf("%s\n", c.Name)
 		}
+		return nil
+	},
+}
+
+var vecDbColLsCmd = &cobra.Command{
+	Use:   "col <collection_name>",
+	Short: "List collection documents",
+
+	Aliases: []string{"c", "collection"},
+	Long:    ``,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return cmd.Usage()
+		}
+		colName := args[0]
+		ctx := cmd.Context()
+		client, err := vecdb.New(slog.Default())
+		if err != nil {
+			return fmt.Errorf("Failed to create client: %w", err)
+		}
+		col, err := client.GetCollection(ctx, colName)
+		if err != nil {
+			return err
+		}
+
+		res, err := col.GetWithOptions(ctx)
+		if err != nil {
+			return fmt.Errorf("cannot get collection documents: %w", err)
+		}
+		for i, d := range res.Metadatas {
+			// fmt.Printf("%s %s\n", d[vecdb.MetaPath], d[vecdb.MetaUpdated])
+			fmt.Printf("  ID: %v Len: %v Meta: %v\n", res.Ids[i],len(res.Documents[i]), d)
+		}
+		fmt.Printf("Found %v docs in collection %s\n", len(res.Documents), colName)
 		return nil
 	},
 }
