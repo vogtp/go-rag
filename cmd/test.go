@@ -1,24 +1,27 @@
 package cmd
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/rag"
 	"github.com/vogtp/rag/pkg/server"
+	"github.com/vogtp/rag/pkg/vecDB/confluence"
 )
 
 func addTest() {
 	testCmd.AddCommand(testRagCmd)
 	testCmd.AddCommand(testScaperCmd)
+	testCmd.AddCommand(testConfluenceCmd)
 	rootCmd.AddCommand(testCmd)
 }
 
 func testFlags() {
 	testCmd.Flags().BoolP("test", "t", false, "Show version information")
-	if err:=viper.BindPFlags(testCmd.Flags());err!=nil{
-		slog.Warn("Cannot bind test cmd flags","err",err)
+	if err := viper.BindPFlags(testCmd.Flags()); err != nil {
+		slog.Warn("Cannot bind test cmd flags", "err", err)
 	}
 }
 
@@ -41,6 +44,7 @@ var testScaperCmd = &cobra.Command{
 		return err
 	},
 }
+
 var testRagCmd = &cobra.Command{
 	Use:     "rag",
 	Short:   "Start RAG server",
@@ -50,5 +54,23 @@ var testRagCmd = &cobra.Command{
 		rag := rag.New(slog)
 		api := server.New(slog, rag)
 		return api.Run(cmd.Context(), ":4444")
+	},
+}
+
+var testConfluenceCmd = &cobra.Command{
+	Use: "confluence",
+	// Short:   "Start RAG server",
+	Aliases: []string{"conf"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		slog := slog.Default()
+
+		c, err := confluence.Generate(cmd.Context(), slog)
+		if err != nil {
+			return err
+		}
+		for doc := range c {
+			fmt.Printf("Doc %v Size: %v\n", doc.Title, len(doc.Document))
+		}
+		return nil
 	},
 }

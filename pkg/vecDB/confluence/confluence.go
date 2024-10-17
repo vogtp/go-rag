@@ -11,22 +11,24 @@ import (
 
 	"github.com/graze/go-throttled"
 	"github.com/k3a/html2text"
+	"github.com/spf13/viper"
 	conflu "github.com/virtomize/confluence-go-api"
-	vecdb "gitlab-int.its.unibas.ch/vogtp/chatbot/pkg/vecDB"
+	"github.com/vogtp/rag/pkg/cfg"
+	vecdb "github.com/vogtp/rag/pkg/vecDB"
 	"golang.org/x/time/rate"
 )
 
-func Generate(ctx context.Context, slog *slog.Logger, baseUrl string) (chan vecdb.EmbeddDocument, error) {
-
+func Generate(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument, error) {
+	baseUrl := viper.GetString(cfg.ConfluenceBaseURL)
 	baseUrl = strings.TrimRight(baseUrl, "/")
 	conf := confluence{
 		slog:       slog.With("confluence_url", baseUrl),
 		baseUrl:    baseUrl,
 		out:        make(chan vecdb.EmbeddDocument, 10),
-		accessKey:  "NTA5OTUwMTc0NzQwOscGAubsDfzhuiTqYvXmEZCvUrta",
+		accessKey:  viper.GetString(cfg.ConfluenceKey),
 		rateLimit:  rate.Limit(0.4),
 		queryLimit: 100,
-		spaces:     []string{"ITSWAMS", "URZMON", "ITSKB", "ITS"},
+		spaces:     viper.GetStringSlice(cfg.ConfluenceSpaces),
 	}
 	if err := conf.init(); err != nil {
 		return nil, err

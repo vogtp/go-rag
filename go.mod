@@ -4,13 +4,19 @@ go 1.23.0
 
 require (
 	github.com/gocolly/colly v1.2.0
+	github.com/graze/go-throttled v0.3.1
+	github.com/k3a/html2text v1.2.1
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/sashabaranov/go-openai v1.32.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/tmc/langchaingo v0.1.12
+	github.com/virtomize/confluence-go-api v1.4.6
+	golang.org/x/time v0.5.0
 )
+
+require github.com/magefile/mage v1.14.0 // indirect
 
 require (
 	dario.cat/mergo v1.0.1 // indirect

@@ -32,6 +32,13 @@ const (
 
 	// OllamaHosts is host:port
 	OllamaHosts = "ollama.hosts"
+
+	// ConfluenceKey is the confluence access token
+	ConfluenceKey = "confluence.key"
+	// ConfluenceBaseURL is the base URL of the confluence instance
+	ConfluenceBaseURL = "confluence.baseURL"
+	// ConfluenceSpaces defines the spaces to scrap
+	ConfluenceSpaces = "confluence.spaces"
 )
 
 func init() {
@@ -41,6 +48,10 @@ func init() {
 	pflag.Bool(LogSource, false, "Log the source line")
 	pflag.Bool(LogJson, false, "Log in json")
 
-	pflag.String(ModelDefault, "llama3.1", "ModelDefault is the default model when no model is given")
-	pflag.String(ModelEmbedding, "llama3.1", "ModelEmbedding is the default model used for embeddings")
+	pflag.String(ModelDefault, "llama3.1", "The default model when no model is given")
+	pflag.String(ModelEmbedding, "llama3.1", "The default model used for embeddings")
+
+	pflag.String(ConfluenceKey, "", "The confluence access token")
+	pflag.String(ConfluenceBaseURL, "", "The confluence access token")
+	pflag.StringSlice(ConfluenceSpaces, nil, "The confluence spaces to scrap")
 }
