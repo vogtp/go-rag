@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -15,7 +16,7 @@ import (
 )
 
 func addchroma() {
-	rootCmd.AddCommand(chromaCmd)
+	testCmd.AddCommand(chromaCmd)
 }
 
 func chromaFlags() {
@@ -69,12 +70,16 @@ func chromaVecDB(ctx context.Context) error {
 		{PageContent: "Sao Paulo", Metadata: map[string]any{"population": 22.6, "area": 1523}},
 	}
 
-	_, err = store.AddDocuments(ctx, data)
+	ids, err := store.AddDocuments(ctx, data)
+	if err != nil {
+		return fmt.Errorf("cannot add docs: %w", err)
+	}
+	slog.Info("Added docs to vecDB", "cnt", len(ids))
 	docs, err := store.SimilaritySearch(ctx, "yo", 2,
 		vectorstores.WithScoreThreshold(0.5),
 	)
 	if err != nil {
-		return fmt.Errorf("cannot add docs: %w", err)
+		return fmt.Errorf("cannot search the docs: %w", err)
 	}
 	fmt.Printf("found docs: %v\n", docs)
 
