@@ -27,10 +27,11 @@ const (
 
 	// ModelDefault is the default model when no model is given
 	ModelDefault = "model.default"
+	// ModelEmbedding is the default model used for embeddings
+	ModelEmbedding = "model.embedding"
 
 	// OllamaHosts is host:port
 	OllamaHosts = "ollama.hosts"
-
 )
 
 func init() {
@@ -39,4 +40,7 @@ func init() {
 	pflag.String(LogLevel, "warn", "Set the loglevel: error warn info debug trace off")
 	pflag.Bool(LogSource, false, "Log the source line")
 	pflag.Bool(LogJson, false, "Log in json")
+
+	pflag.String(ModelDefault, "llama3.1", "ModelDefault is the default model when no model is given")
+	pflag.String(ModelEmbedding, "llama3.1", "ModelEmbedding is the default model used for embeddings")
 }

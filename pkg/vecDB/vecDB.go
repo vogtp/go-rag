@@ -8,6 +8,8 @@ import (
 	chroma "github.com/amikos-tech/chroma-go"
 	ollamaEmbedd "github.com/amikos-tech/chroma-go/pkg/embeddings/ollama"
 	"github.com/amikos-tech/chroma-go/types"
+	"github.com/spf13/viper"
+	"github.com/vogtp/rag/pkg/cfg"
 )
 
 type VecDB struct {
@@ -26,7 +28,7 @@ func New(slog *slog.Logger, opts ...Option) (*VecDB, error) {
 		ollamaAddr: "http://localhost:11434/",
 		chromaAddr: "http://localhost:8000",
 		//embeddingsModel: "nomic-embed-text",
-		embeddingsModel: "mxbai-embed-large",
+		embeddingsModel: viper.GetString(cfg.ModelEmbedding),
 	}
 	for _, o := range opts {
 		o(v)

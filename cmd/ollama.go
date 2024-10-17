@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/vogtp/rag/pkg/cfg"
 )
 
 func addOllama() {
@@ -52,7 +53,7 @@ func getOllamaClient(model string) (*ollama.LLM, error) {
 }
 
 func ollamaChat(ctx context.Context) error {
-	llm, err := getOllamaClient("llama3.1")
+	llm, err := getOllamaClient(viper.GetString(cfg.ModelDefault))
 	if err != nil {
 		return fmt.Errorf("cannot create ollama connection: %w", err)
 	}
