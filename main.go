@@ -11,10 +11,6 @@ import (
 )
 
 func main() {
-	cobra.CheckErr(cmd.New().ExecuteContext(signalContext()))
-}
-
-func signalContext() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGHUP, syscall.SIGTERM)
@@ -26,5 +22,6 @@ func signalContext() context.Context {
 		case <-ctx.Done():
 		}
 	}()
-	return ctx
+
+	cobra.CheckErr(cmd.New().ExecuteContext(ctx))
 }
