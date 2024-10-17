@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 	"github.com/vogtp/rag/pkg/vecDB/filesystem"
 )
@@ -58,7 +60,7 @@ var vecDbEmbbedCmd = &cobra.Command{
 
 func getOllamaHost(args []string) string {
 	if len(args) < 3 {
-		return "http://llama-1.its.unibas.ch:11434"
+		return viper.GetString(cfg.OllamaHosts)
 	}
 	return args[2]
 }
