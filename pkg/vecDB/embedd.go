@@ -82,6 +82,9 @@ func (v *VecDB) Embedd(ctx context.Context, collectionName string, in <-chan Emb
 		if len(d.Title) > 0 {
 			metadata = append(metadata, types.WithMetadata(MetaTitle, d.Title))
 		}
+		for k,v:=range d.MetaData {
+			metadata = append(metadata, types.WithMetadata(k, v))
+		}
 		rs.WithRecord(metadata...)
 
 		_, err = rs.BuildAndValidate(ctx)

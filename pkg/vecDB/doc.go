@@ -10,4 +10,6 @@ type EmbeddDocument struct {
 	Modified time.Time
 	Title    string
 	Document string
+
+	MetaData map[string]any
 }

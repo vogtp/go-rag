@@ -39,6 +39,10 @@ func walkPath(ctx context.Context, out chan vecdb.EmbeddDocument, path string) {
 			Modified:    i.ModTime(),
 		}
 
+		doc.MetaData = make(map[string]any)
+		doc.MetaData[vecdb.MetaPath] = path
+		doc.MetaData[vecdb.MetaUpdated] = i.ModTime().String()
+
 		slog.Debug("adding document to chroma")
 		txt, err := os.ReadFile(path)
 		if err != nil {
