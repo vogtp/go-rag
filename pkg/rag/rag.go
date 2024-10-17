@@ -17,7 +17,7 @@ func New(slog *slog.Logger) *Manager {
 	m := Manager{
 		slog: slog,
 
-		models: []Model{Model{Name: "Dummy 1", LLMName: "llama3.1"}, Model{Name: "Dummy 2", LLMName: "llama3.1"}},
+		models: []Model{{Name: "Dummy 1", LLMName: "llama3.1"}, Model{Name: "Dummy 2", LLMName: "llama3.1"}},
 	}
 	return &m
 }
