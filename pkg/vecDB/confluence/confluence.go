@@ -118,14 +118,15 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 				Title:       d.Title,
 				URL:         c.getUrl(d.Links.WebUI),
 				Document:    txt,
-				IDMetaKey:   vecdb.MetaPath,
+				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: d.Links.WebUI,
 			}
 			// 2016-05-30T16:14:07.787+02:00
 			if t, err := time.Parse(time.RFC3339Nano, d.History.LastUpdated.When); err == nil {
 				doc.Modified = t
 			} else {
-				panic(err)
+				c.slog.Error("Cannot parse time of confluence page", "time", t.String(), "err", err, "title", d.Title, "url", d.Links.WebUI)
+				continue
 			}
 			c.out <- doc
 		}
