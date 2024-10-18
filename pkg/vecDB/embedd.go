@@ -9,6 +9,9 @@ import (
 )
 
 const (
+	// MetaIDKey is the name of the key which identifies the unique value
+	MetaIDKey = "IDkey"
+
 	MetaPath    = "path"
 	MetaIsRag   = "RAG"
 	MetaCreated = "created"
@@ -75,14 +78,14 @@ func (v *VecDB) Embedd(ctx context.Context, collectionName string, in <-chan Emb
 			return fmt.Errorf("error creating record set: %s \n", err)
 		}
 
-		metadata := []types.Option{types.WithDocument(d.Document), types.WithMetadata(d.IDMetaKey, d.IDMetaValue), types.WithMetadata(MetaUpdated, d.Modified.String())}
+		metadata := []types.Option{types.WithDocument(d.Document), types.WithMetadata(d.IDMetaKey, d.IDMetaValue), types.WithMetadata(MetaIDKey, d.IDMetaKey), types.WithMetadata(MetaUpdated, d.Modified.String())}
 		if len(d.URL) > 0 {
 			metadata = append(metadata, types.WithMetadata(MetaURL, d.URL))
 		}
 		if len(d.Title) > 0 {
 			metadata = append(metadata, types.WithMetadata(MetaTitle, d.Title))
 		}
-		for k,v:=range d.MetaData {
+		for k, v := range d.MetaData {
 			metadata = append(metadata, types.WithMetadata(k, v))
 		}
 		rs.WithRecord(metadata...)
