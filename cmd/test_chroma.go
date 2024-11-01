@@ -45,9 +45,9 @@ var chromaCmd = &cobra.Command{
 }
 
 var chromaColCmd = &cobra.Command{
-	Use:     "col <collection_name>",
-	Short:   "Run chroma stuff",
-	Aliases: []string{"c", "collection"},
+	Use:     "owm <collection_name>",
+	Short:   "Run chroma own text example",
+	Aliases: []string{"c", "collection", "col", "o"},
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
 	},
@@ -55,12 +55,12 @@ var chromaColCmd = &cobra.Command{
 		if len(args) < 1 {
 			return cmd.Usage()
 		}
-		return chromaVecDBCol(cmd, args[0])
+		return chromaVecDBOwn(cmd.Context(), args[0])
 	},
 }
 var chromaExampleCmd = &cobra.Command{
 	Use:     "example",
-	Short:   "Run chroma stuff",
+	Short:   "Run chroma exmple from upstream",
 	Aliases: []string{"e"},
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,

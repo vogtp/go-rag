@@ -119,10 +119,10 @@ var vecDbSearchCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("Failed to query vector DB: %w", err)
 		}
-		fmt.Printf("Found %v documents\n", len(res))
 		for _, r := range res[0].Documents {
 			fmt.Printf("Docu: %+v\n", r)
 		}
+		fmt.Printf("Found %v documents for %q\n", len(res), search)
 		return nil
 	},
 }

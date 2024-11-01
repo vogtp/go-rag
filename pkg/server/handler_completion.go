@@ -11,6 +11,7 @@ import (
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/sashabaranov/go-openai"
+	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/vogtp/rag/pkg/rag"
 )
@@ -58,24 +59,36 @@ func (a API) chatCompletionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel *rag.Model, w http.ResponseWriter, r *http.Request) {
-
+	ctx := r.Context()
 	llm, err := ragModel.GetLLM()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	msgs := make([]llms.MessageContent, len(req.Messages))
+	msgs := make([]llms.MessageContent, len(req.Messages)*3)
 	for i, m := range req.Messages {
-		a.slog.Debug("Chat message", "role", m.Role, "content", m.Content, "idx", i)
-
-		msgs[i] = llms.TextParts(rag.RoleOpenAI2langchain(m.Role), m.Content)
-
+		a.slog.Info("Chat message", "role", m.Role, "content", m.Content, "idx", i)
+		role := rag.RoleOpenAI2langchain(m.Role)
+		if len(ragModel.Collection) > 0 && role == llms.ChatMessageTypeHuman {
+			docs, err := getDocs(ctx, ragModel.Collection, m.Content)
+			if err == nil {
+				for _, doc := range docs {
+					msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeSystem, doc.PageContent))
+					a.slog.Info("Added doc", "doc_start", doc.PageContent[:60], "chat_sequence", i, "collection", ragModel.Collection)
+				}
+			} else {
+				slog.Warn("Cannot query docs", "err", err)
+			}
+		}
+		msgs = append(msgs, llms.TextParts(role, m.Content))
 	}
 
 	resChan := make(chan []byte, 5)
 	go func() {
 		defer close(resChan)
-		resp, err := llm.GenerateContent(r.Context(), msgs, llms.WithTemperature(0.001), llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+		chains.LoadCondenseQuestionGenerator(llm)
+
+		resp, err := llm.GenerateContent(ctx, msgs, llms.WithTemperature(0.001), llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
@@ -92,7 +105,7 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 	}()
 
 	a.setStreamHeaders(w)
-	stream(r.Context(), w, func(w io.Writer) bool {
+	stream(ctx, w, func(w io.Writer) bool {
 		data := []byte("data: ")
 		// chunk data
 		if chunk, ok := <-resChan; ok {

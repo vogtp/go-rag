@@ -1,10 +1,15 @@
 package rag
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/url"
 	"strings"
+
+	"github.com/spf13/viper"
+	"github.com/vogtp/rag/pkg/cfg"
+	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
 
 type Manager struct {
@@ -13,13 +18,34 @@ type Manager struct {
 	models []Model
 }
 
-func New(slog *slog.Logger) *Manager {
+func New(ctx context.Context, slog *slog.Logger) *Manager {
 	m := Manager{
 		slog: slog,
 
-		models: []Model{{Name: "Dummy 1", LLMName: "llama3.1"}, {Name: "Dummy 2", LLMName: "llama3.1"}},
+		models: []Model{{Name: "llama3.1", LLMName: viper.GetString(cfg.ModelDefault)}},
 	}
+
+	if err := m.updateModelsFromChroma(ctx, slog); err != nil {
+		slog.Warn("Cannot get collections from chroma", "err", err)
+	}
+
 	return &m
+}
+
+func (m *Manager) updateModelsFromChroma(ctx context.Context, slog *slog.Logger) error {
+	v, err := vecdb.New(ctx, slog)
+	if err != nil {
+		return fmt.Errorf("cannot connect to chroma: %w", err)
+	}
+	collections, err := v.ListCollections(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot list chroma collections: %w", err)
+	}
+	model := viper.GetString(cfg.ModelDefault)
+	for _, c := range collections {
+		m.models = append(m.models, Model{Name: c.Name, Collection: c.Name, LLMName: model})
+	}
+	return nil
 }
 
 func (m Manager) Models() []Model {

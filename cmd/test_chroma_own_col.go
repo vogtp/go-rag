@@ -1,21 +1,29 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/amikos-tech/chroma-go/types"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/chains"
+	"github.com/tmc/langchaingo/documentloaders"
+	"github.com/tmc/langchaingo/memory"
+	"github.com/tmc/langchaingo/prompts"
+	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/textsplitter"
 	"github.com/tmc/langchaingo/vectorstores"
 	"github.com/tmc/langchaingo/vectorstores/chroma"
 	"github.com/vogtp/rag/pkg/cfg"
 )
 
-func chromaVecDBCol(cmd *cobra.Command, index string) error {
-	ctx := cmd.Context()
+func chromaVecDBOwn(ctx context.Context, index string) error {
 
-	model := viper.GetString(cfg.ModelEmbedding)
+	loader := documentloaders.NewNotionDirectory("/home/vogtp/go/src/gitlab-int.its.unibas.ch/vogtp/chatbot/modelfiles/vogtp/")
+
+	slog.Info("Searching vecDB", "index", index)
+	model := viper.GetString(cfg.ModelDefault)
 	llm, err := getOllamaClient(model)
 	if err != nil {
 		return fmt.Errorf("cannot load embedding model %s: %w", model, err)
@@ -34,8 +42,22 @@ func chromaVecDBCol(cmd *cobra.Command, index string) error {
 	if err != nil {
 		return fmt.Errorf("cannot create chroma client: %w", err)
 	}
+	docs, err := loader.LoadAndSplit(ctx, textsplitter.NewRecursiveCharacter())
+	if err != nil {
+		return err
+	}
+	if len(docs) < 1 {
+		return fmt.Errorf("No documents")
+	}
+	idfuc := vectorstores.WithIDGenerater(func(ctx context.Context, doc schema.Document) string {
+		//fmt.Printf("%+v\n", doc.Metadata)
+		return fmt.Sprint(doc.Metadata["source"])
+	})
+	if _, err := store.AddDocuments(ctx, docs, idfuc); err != nil {
+		return fmt.Errorf("cannot add docs: %w", err)
+	}
 	questions := []string{
-		"get an account",
+		"how can I get a guest account",
 		"lost my password",
 		"cannot connect",
 	}
@@ -46,14 +68,33 @@ func chromaVecDBCol(cmd *cobra.Command, index string) error {
 			return fmt.Errorf("cannot search the docs: %w", err)
 		}
 		fmt.Printf("**************\nQuestion: %s\nDocs: %v\n", question, len(docs))
-		for i, d := range docs {
-			fmt.Printf("Doc %v score: %v -> %v %v\n", i, d.Score, d.PageContent, d.Metadata)
-		}
+		// for i, d := range docs {
+		// 	fmt.Printf("Doc %v score: %v -> %v %v\n", i, d.Score, d.PageContent, d.Metadata)
+		// }
 
-		result, err := chains.Run(
+		mem := memory.NewConversationBuffer()
+		rec := vectorstores.ToRetriever(
+			store,
+			5,
+			// vectorstores.WithNameSpace(index),
+			vectorstores.WithScoreThreshold(0.2),
+		)
+		c := chains.NewConversationalRetrievalQAFromLLM(llm, rec, mem)
+		// llmChain := chains.NewConversation(llm, mem)
+		// // condenseChain:=chains.NewStuffDocuments()
+		// cov := chains.NewConversationalRetrievalQA(llmChain, nil, rec, mem)
+		// endChain := chains.NewRefineDocuments(&conversationChain, vecDBChain)
+
+		result, err := chains.Run(ctx, c, question)
+		if err != nil {
+			return fmt.Errorf("cannot run chain: %w", err)
+		}
+		fmt.Printf("Res: %v\n", result)
+		llmChain := chains.NewLLMChain(llm, prompts.NewPromptTemplate(" ddd", nil))
+		result, err = chains.Run(
 			ctx,
 			chains.NewRetrievalQAFromLLM(
-				llm,
+				llmChain.LLM,
 				vectorstores.ToRetriever(
 					store,
 					5,
@@ -67,7 +108,18 @@ func chromaVecDBCol(cmd *cobra.Command, index string) error {
 		if err != nil {
 			return fmt.Errorf("cannot run chain: %w", err)
 		}
-		fmt.Printf("Res: %v\n", result)
+		fmt.Printf("Res2: %v\n", result)
+
+		stuffQAChain := chains.LoadStuffQA(llm)
+
+		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
+			"input_documents": docs,
+			"question":        question,
+		})
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Res3: %v\n", answer["text"])
 	}
 	return nil
 }

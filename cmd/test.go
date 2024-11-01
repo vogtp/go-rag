@@ -51,7 +51,7 @@ var testRagCmd = &cobra.Command{
 	Aliases: []string{"r"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		slog := slog.Default()
-		rag := rag.New(slog)
+		rag := rag.New(cmd.Context(), slog)
 		api := server.New(slog, rag)
 		return api.Run(cmd.Context(), ":4444")
 	},
