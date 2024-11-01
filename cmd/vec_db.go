@@ -9,11 +9,14 @@ import (
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
+	"github.com/vogtp/rag/pkg/vecDB/chroma"
 	"github.com/vogtp/rag/pkg/vecDB/filesystem"
 )
 
 func addVecDB() {
 	rootCmd.AddCommand(vecDbCmd)
+	vecDbCmd.AddCommand(vecDbStartChromaCmd)
+	vecDbCmd.AddCommand(vecDbStopChromaCmd)
 	vecDbCmd.AddCommand(vecDbEmbbedCmd)
 	vecDbCmd.AddCommand(vecDbRmCmd)
 	vecDbCmd.AddCommand(vecDbLsCmd)
@@ -22,13 +25,38 @@ func addVecDB() {
 }
 
 var vecDbCmd = &cobra.Command{
-	Use:   "wecdb",
+	Use:   "vecdb",
 	Short: "manage the vector DB",
 
 	Aliases: []string{"v", "vec"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Usage()
+	},
+}
+
+var vecDbStopChromaCmd = &cobra.Command{
+	Use:   "stop chroma",
+	Short: "stop a chroma container",
+
+	Aliases: []string{},
+	Long:    ``,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		c, err := chroma.NewContainer(slog.Default())
+		if err != nil {
+			return err
+		}
+		return c.EnsureStopped(cmd.Context())
+	},
+}
+var vecDbStartChromaCmd = &cobra.Command{
+	Use:   "start chroma",
+	Short: "start a chroma container",
+
+	Aliases: []string{},
+	Long:    ``,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return chroma.EnsureStarted(slog.Default(), cmd.Context(), "8000")
 	},
 }
 
@@ -49,7 +77,7 @@ var vecDbEmbbedCmd = &cobra.Command{
 			fmt.Printf("Updating collection %s took %s\n", collectionName, time.Since(t))
 		}(start)
 
-		client, err := vecdb.New(slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
+		client, err := vecdb.New(cmd.Context(), slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
 		if err != nil {
 			return fmt.Errorf("Failed to create vector DB: %w", err)
 		}
@@ -66,7 +94,7 @@ func getOllamaHost(args []string) string {
 }
 
 var vecDbSearchCmd = &cobra.Command{
-	Use:   "search <collection> <path> <ollama_url>",
+	Use:   "search <collection> <query>",
 	Short: "Search in a collection",
 
 	Aliases: []string{"s"},
@@ -82,15 +110,16 @@ var vecDbSearchCmd = &cobra.Command{
 			fmt.Printf("Updating collection %s took %s\n", collectionName, time.Since(t))
 		}(start)
 
-		client, err := vecdb.New(slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
+		client, err := vecdb.New(cmd.Context(), slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
 		if err != nil {
 			return fmt.Errorf("Failed to create vector DB: %w", err)
 		}
 
 		res, err := client.Query(cmd.Context(), collectionName, []string{search}, 5)
 		if err != nil {
-			return fmt.Errorf("Failed to connect to vector DB: %w", err)
+			return fmt.Errorf("Failed to query vector DB: %w", err)
 		}
+		fmt.Printf("Found %v documents\n", len(res))
 		for _, r := range res[0].Documents {
 			fmt.Printf("Docu: %+v\n", r)
 		}
@@ -108,7 +137,7 @@ var vecDbRmCmd = &cobra.Command{
 		if len(args) < 1 {
 			return cmd.Usage()
 		}
-		client, err := vecdb.New(slog.Default())
+		client, err := vecdb.New(cmd.Context(), slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}
@@ -141,7 +170,7 @@ var vecDbLsCmd = &cobra.Command{
 	Aliases: []string{"list", "show"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := vecdb.New(slog.Default())
+		client, err := vecdb.New(cmd.Context(), slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}
@@ -168,7 +197,7 @@ var vecDbColLsCmd = &cobra.Command{
 		}
 		colName := args[0]
 		ctx := cmd.Context()
-		client, err := vecdb.New(slog.Default())
+		client, err := vecdb.New(cmd.Context(), slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}
