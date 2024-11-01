@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/amikos-tech/chroma-go/types"
-	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/schema"
@@ -17,7 +16,7 @@ import (
 )
 
 func chromaVecDBExample(ctx context.Context) error {
-	model := viper.GetString(cfg.ModelEmbedding)
+	model := viper.GetString(cfg.ModelDefault)
 	llm, err := getOllamaClient(model)
 	if err != nil {
 		return fmt.Errorf("cannot load embedding model %s: %w", model, err)
@@ -27,7 +26,7 @@ func chromaVecDBExample(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	index := uuid.New().String()
+	index := "TODO" //uuid.New().String()
 	store, err := chroma.New(
 		chroma.WithChromaURL(chromeURL),
 		chroma.WithNameSpace(index),
@@ -54,7 +53,7 @@ func chromaVecDBExample(ctx context.Context) error {
 		{PageContent: "Sao Paulo", Metadata: map[string]any{"population": 22.6, "area": 1523}},
 	}
 	idGen := vectorstores.WithIDGenerater(func(ctx context.Context, doc schema.Document) string {
-		return doc.PageContent
+		return doc.PageContent[:5]
 	})
 	_, err = store.AddDocuments(ctx, data, idGen)
 	if err != nil {
@@ -66,15 +65,15 @@ func chromaVecDBExample(ctx context.Context) error {
 		for k, v := range d.Metadata {
 			meta = append(meta, fmt.Sprintf("%s=%v", k, v))
 		}
-		d.PageContent = fmt.Sprintf("%s \nMetadata: %s", d.PageContent, strings.Join(meta, ", "))
+		d.PageContent = fmt.Sprintf("%s dedouped Metadata: %s", d.PageContent, strings.Join(meta, ", "))
 		data[i] = d
 	}
 	for _, d := range data {
-		fmt.Printf("%+v\n", d)
+		fmt.Printf("%+v\n", d.PageContent)
 	}
 
 	ids, err := store.AddDocuments(ctx, data, idGen, vectorstores.WithDeduplicater(func(ctx context.Context, doc schema.Document) bool {
-		fmt.Printf("dedoub %v\n", doc)
+		fmt.Printf("####################3 dedoub %v\n", doc)
 		return false
 	}))
 	if err != nil {
