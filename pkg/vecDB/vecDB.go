@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
-	"net/url"
 
 	chroma "github.com/amikos-tech/chroma-go"
 	ollamaEmbedd "github.com/amikos-tech/chroma-go/pkg/embeddings/ollama"
 	"github.com/amikos-tech/chroma-go/types"
-	ollamaAPI "github.com/ollama/ollama/api"
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 )
@@ -25,10 +22,9 @@ type VecDB struct {
 }
 
 func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error) {
-	chromaPort := "8000"
 	v := &VecDB{
 		slog:       slog,
-		chromaAddr: fmt.Sprintf("http://localhost:%s", chromaPort),
+		chromaAddr: viper.GetString(cfg.ChromaUrl),
 		//embeddingsModel: "nomic-embed-text",
 		embeddingsModel: viper.GetString(cfg.ModelEmbedding),
 	}
@@ -36,19 +32,7 @@ func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error)
 		o(v)
 	}
 	if len(v.ollamaAddr) < 1 {
-		for _, o := range viper.GetStringSlice(cfg.OllamaHosts) {
-			u, err := url.Parse(o)
-			if err != nil {
-				slog.Warn("Cannot parse ollama url", "url", o, "err", err)
-				continue
-			}
-			c := ollamaAPI.NewClient(u, http.DefaultClient)
-			if err := c.Heartbeat(ctx); err != nil {
-				slog.Warn("Cannot connect to ollama", "url", o, "err", err)
-			}
-			v.ollamaAddr = o
-			break
-		}
+		v.ollamaAddr = cfg.GetOllamaHost(ctx)
 	}
 	if len(v.ollamaAddr) < 1 {
 		return nil, fmt.Errorf("no ollama address given")

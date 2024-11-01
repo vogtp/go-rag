@@ -33,6 +33,9 @@ const (
 	// OllamaHosts is host:port
 	OllamaHosts = "ollama.hosts"
 
+	// ChromaUrl the URL where chroma can be reached
+	ChromaUrl = "chroma.url"
+
 	// ConfluenceKey is the confluence access token
 	ConfluenceKey = "confluence.key"
 	// ConfluenceBaseURL is the base URL of the confluence instance
@@ -54,4 +57,6 @@ func init() {
 	pflag.String(ConfluenceKey, "", "The confluence access token")
 	pflag.String(ConfluenceBaseURL, "", "The confluence access token")
 	pflag.StringSlice(ConfluenceSpaces, nil, "The confluence spaces to scrap")
+
+	pflag.String(ChromaUrl, "http://localhost:8000", "the URL where chroma can be reached")
 }
