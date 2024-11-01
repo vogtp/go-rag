@@ -66,7 +66,7 @@ var chromaExampleCmd = &cobra.Command{
 		DisableDefaultCmd: true,
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return chromaVecDBExample(cmd)
+		return chromaVecDBExample(cmd.Context())
 	},
 }
 

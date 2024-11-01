@@ -1,13 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"strings"
 
 	"github.com/amikos-tech/chroma-go/types"
 	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/schema"
@@ -16,8 +16,7 @@ import (
 	"github.com/vogtp/rag/pkg/cfg"
 )
 
-func chromaVecDBExample(cmd *cobra.Command) error {
-	ctx := cmd.Context()
+func chromaVecDBExample(ctx context.Context) error {
 	model := viper.GetString(cfg.ModelEmbedding)
 	llm, err := getOllamaClient(model)
 	if err != nil {
@@ -54,6 +53,14 @@ func chromaVecDBExample(cmd *cobra.Command) error {
 		{PageContent: "Rio de Janeiro", Metadata: map[string]any{"population": 13.7, "area": 1200}},
 		{PageContent: "Sao Paulo", Metadata: map[string]any{"population": 22.6, "area": 1523}},
 	}
+	idGen := vectorstores.WithIDGenerater(func(ctx context.Context, doc schema.Document) string {
+		return doc.PageContent
+	})
+	_, err = store.AddDocuments(ctx, data, idGen)
+	if err != nil {
+		slog.Warn("Cannot add docs", "cnt", len(data), "err", err)
+		//return fmt.Errorf("cannot add docs: %w", err)
+	}
 	for i, d := range data {
 		meta := make([]string, 0)
 		for k, v := range d.Metadata {
@@ -66,14 +73,21 @@ func chromaVecDBExample(cmd *cobra.Command) error {
 		fmt.Printf("%+v\n", d)
 	}
 
-	ids, err := store.AddDocuments(ctx, data)
+	ids, err := store.AddDocuments(ctx, data, idGen, vectorstores.WithDeduplicater(func(ctx context.Context, doc schema.Document) bool {
+		fmt.Printf("dedoub %v\n", doc)
+		return false
+	}))
 	if err != nil {
 		slog.Warn("Cannot add docs", "cnt", len(data), "err", err)
 		//return fmt.Errorf("cannot add docs: %w", err)
 	}
 	slog.Info("Added docs to vecDB", "cnt", len(ids), "ids", strings.Join(ids, ","))
 
-	for _, question := range []string{"london population", "london", "City with a population of more than 15"} {
+	for _, question := range []string{
+		//"london population",
+		"london",
+		//"City with a population of more than 15",
+	} {
 		docs, err := store.SimilaritySearch(ctx, question, 3, vectorstores.WithScoreThreshold(0.3))
 
 		if err != nil {
@@ -81,7 +95,7 @@ func chromaVecDBExample(cmd *cobra.Command) error {
 		}
 		fmt.Printf("**************\nQuestion: %s\nDocs: %v\n", question, len(docs))
 		for i, d := range docs {
-			fmt.Printf("Doc %v score: %v -> %v %v\n", i, d.Score, d.PageContent, d.Metadata)
+			fmt.Printf("Doc %v score: %v -> %v | %v\n", i, d.Score, d.PageContent, d.Metadata)
 		}
 
 		result, err := chains.Run(
