@@ -19,7 +19,7 @@ func Generate(ctx context.Context, path string) chan vecdb.EmbeddDocument {
 func walkPath(ctx context.Context, out chan vecdb.EmbeddDocument, path string) {
 	defer close(out)
 
-	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, _ error) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
