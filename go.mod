@@ -9,6 +9,7 @@ require (
 	github.com/graze/go-throttled v0.3.1
 	github.com/k3a/html2text v1.2.1
 	github.com/matoous/go-nanoid v1.5.1
+	github.com/ollama/ollama v0.3.14
 	github.com/sashabaranov/go-openai v1.32.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -40,6 +41,7 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 )
 

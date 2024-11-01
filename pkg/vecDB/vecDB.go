@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"net/url"
 
 	chroma "github.com/amikos-tech/chroma-go"
 	ollamaEmbedd "github.com/amikos-tech/chroma-go/pkg/embeddings/ollama"
 	"github.com/amikos-tech/chroma-go/types"
+	ollamaAPI "github.com/ollama/ollama/api"
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 )
@@ -34,10 +37,17 @@ func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error)
 	}
 	if len(v.ollamaAddr) < 1 {
 		for _, o := range viper.GetStringSlice(cfg.OllamaHosts) {
-			if len(o) > 0 {
-				v.ollamaAddr = o
-				break
+			u, err := url.Parse(o)
+			if err != nil {
+				slog.Warn("Cannot parse ollama url", "url", o, "err", err)
+				continue
 			}
+			c := ollamaAPI.NewClient(u, http.DefaultClient)
+			if err := c.Heartbeat(ctx); err != nil {
+				slog.Warn("Cannot connect to ollama", "url", o, "err", err)
+			}
+			v.ollamaAddr = o
+			break
 		}
 	}
 	if len(v.ollamaAddr) < 1 {
