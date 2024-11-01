@@ -21,19 +21,32 @@ type VecDB struct {
 	embeddingsModel string
 }
 
-func New(slog *slog.Logger, opts ...Option) (*VecDB, error) {
-
+func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error) {
+	chromaPort := "8000"
 	v := &VecDB{
 		slog:       slog,
-		ollamaAddr: "http://localhost:11434/",
-		chromaAddr: "http://localhost:8000",
+		chromaAddr: fmt.Sprintf("http://localhost:%s", chromaPort),
 		//embeddingsModel: "nomic-embed-text",
 		embeddingsModel: viper.GetString(cfg.ModelEmbedding),
 	}
 	for _, o := range opts {
 		o(v)
 	}
-	v.slog = slog.With("chroma_addr", v.chromaAddr)
+	if len(v.ollamaAddr) < 1 {
+		for _, o := range viper.GetStringSlice(cfg.OllamaHosts) {
+			if len(o) > 0 {
+				v.ollamaAddr = o
+				break
+			}
+		}
+	}
+	if len(v.ollamaAddr) < 1 {
+		return nil, fmt.Errorf("no ollama address given")
+	}
+	if len(v.chromaAddr) < 1 {
+		return nil, fmt.Errorf("no chroma address given")
+	}
+	v.slog = slog.With("chroma_addr", v.chromaAddr, "ollama_addr", v.ollamaAddr)
 
 	client, err := chroma.NewClient(v.chromaAddr)
 	if err != nil {
@@ -63,6 +76,7 @@ func (v *VecDB) GetEmbeddingFunc() (*ollamaEmbedd.OllamaEmbeddingFunction, error
 	if v.embedFunc != nil {
 		return v.embedFunc, nil
 	}
+	v.slog.Info("Loading embedding function", "embeddingsModel", v.embeddingsModel)
 	embedFunc, err := ollamaEmbedd.NewOllamaEmbeddingFunction(
 		ollamaEmbedd.WithBaseURL(v.ollamaAddr),
 		ollamaEmbedd.WithModel(v.embeddingsModel),
