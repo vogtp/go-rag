@@ -11,7 +11,6 @@ import (
 
 	gonanoid "github.com/matoous/go-nanoid"
 	"github.com/sashabaranov/go-openai"
-	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/vogtp/rag/pkg/rag"
 )
@@ -58,44 +57,40 @@ func (a API) chatCompletionHandler(w http.ResponseWriter, r *http.Request) {
 	//a.handleChatCompletion(&req, ragModel, w, r)
 }
 
-func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel *rag.Model, w http.ResponseWriter, r *http.Request) {
+func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel rag.Model, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	llm, err := ragModel.GetLLM()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	msgs := make([]llms.MessageContent, len(req.Messages)*3)
+
+	msgs := make([]llms.MessageContent, 0, len(req.Messages)*3)
 	for i, m := range req.Messages {
 		a.slog.Info("Chat message", "role", m.Role, "content", m.Content, "idx", i)
 		role := rag.RoleOpenAI2langchain(m.Role)
-		if len(ragModel.Collection) > 0 && role == llms.ChatMessageTypeHuman {
-			docs, err := getDocs(ctx, ragModel.Collection, m.Content)
-			if err == nil {
-				for _, doc := range docs {
-					msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeSystem, doc.PageContent))
-					a.slog.Info("Added doc", "doc_start", doc.PageContent[:60], "chat_sequence", i, "collection", ragModel.Collection)
-				}
-			} else {
-				slog.Warn("Cannot query docs", "err", err)
-			}
-		}
+		// if len(ragModel.Collection) > 0 && role == llms.ChatMessageTypeHuman {
+		// 	docs, err := getDocs(ctx, ragModel.Collection, m.Content)
+		// 	if err == nil {
+		// 		for _, doc := range docs {
+		// 			msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeSystem, doc.PageContent))
+		// 			a.slog.Info("Added doc", "doc_start", doc.PageContent[:60], "chat_sequence", i, "collection", ragModel.Collection)
+		// 		}
+		// 	} else {
+		// 		slog.Warn("Cannot query docs", "err", err)
+		// 	}
+		// }
 		msgs = append(msgs, llms.TextParts(role, m.Content))
 	}
 
 	resChan := make(chan []byte, 5)
 	go func() {
 		defer close(resChan)
-		chains.LoadCondenseQuestionGenerator(llm)
 
-		resp, err := llm.GenerateContent(ctx, msgs, llms.WithTemperature(0.001), llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+		resp, err := ragModel.GenerateContent(ctx, msgs, 0.001, func(ctx context.Context, chunk []byte) error {
 			if ctx.Err() != nil {
+				slog.Error("GenerateContent call with a canceled context", "context error", ctx.Err())
 				return ctx.Err()
 			}
 			resChan <- chunk
 			slog.Debug("stream response", "chunk", string(chunk))
 			return nil
-		}))
+		})
 		if err != nil {
 			slog.Error("ollama error", "err", err)
 			http.Error(w, fmt.Sprintf("ollama error: %v", err), http.StatusInternalServerError)
@@ -167,13 +162,13 @@ func stream(ctx context.Context, w http.ResponseWriter, step func(w io.Writer) b
 	}
 }
 
-func generateChatStreamResponse(ragModel *rag.Model, chunk []byte) *openai.ChatCompletionStreamResponse {
+func generateChatStreamResponse(ragModel rag.Model, chunk []byte) *openai.ChatCompletionStreamResponse {
 	id := PrefixID("chatcmpl-")
 	res := openai.ChatCompletionStreamResponse{
 		ID:      id,
 		Object:  "chat.completion.chunk",
 		Created: time.Now().Unix(),
-		Model:   ragModel.LLMName,
+		Model:   ragModel.GetLLMName(),
 	}
 	choice := openai.ChatCompletionStreamChoice{
 		Delta: openai.ChatCompletionStreamChoiceDelta{
