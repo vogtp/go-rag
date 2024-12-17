@@ -55,34 +55,39 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 	}
 	mem := memory.NewConversationBuffer()
 
-	question := ""
+	text := ""
 	for _, m := range messages {
 		slog.Info("Message", "m", m, "type", fmt.Sprintf("%T", m))
 		for _, p := range m.Parts {
 			slog.Info("Message Part", "part", p)
 			if tp, ok := p.(llms.TextContent); ok {
-				question = tp.Text
+				text = tp.Text
 			}
 		}
 		switch m.Role {
 		case llms.ChatMessageTypeAI:
-			err = mem.ChatHistory.AddMessage(ctx, llms.AIChatMessage{Content: question})
+			err = mem.ChatHistory.AddAIMessage(ctx, text)
 		case llms.ChatMessageTypeHuman:
-			err = mem.ChatHistory.AddMessage(ctx, llms.HumanChatMessage{Content: question})
+			err = mem.ChatHistory.AddUserMessage(ctx,text)
 		case llms.ChatMessageTypeSystem:
-			err = mem.ChatHistory.AddMessage(ctx, llms.SystemChatMessage{Content: question})
-		default:	
-			err = mem.ChatHistory.AddMessage(ctx, llms.GenericChatMessage{Content: question})
+			err = mem.ChatHistory.AddMessage(ctx, llms.SystemChatMessage{Content: text})
+		default:
+			err = mem.ChatHistory.AddMessage(ctx, llms.GenericChatMessage{Content: text})
 		}
 		if err != nil {
 			slog.Warn("error adding chat memory", "err", err)
 		}
 	}
-	if len(question) < 1 {
+	if len(text) < 1 {
 		slog.Warn("No question found", "messages", messages)
 		return "", fmt.Errorf("no question found")
 	}
-	slog.Info("sending final question to vecDB", "question", question)
+	slog.Info("sending final question to vecDB", "question", text)
+	if h, err := mem.ChatHistory.Messages(ctx); err == nil {
+		slog.Info("Added history", "size", len(h))
+	}else{
+		slog.Warn("No history", "err",err)
+	}
 
 	//FIXME make those number configable
 	// docs, err := store.SimilaritySearch(ctx, question, 3, vectorstores.WithScoreThreshold(0.3))
@@ -91,17 +96,25 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 	// }
 	rec := vectorstores.ToRetriever(
 		store,
-		15,
+		7,
 		// vectorstores.WithNameSpace(index),
-		// vectorstores.WithScoreThreshold(0.2),
+		vectorstores.WithScoreThreshold(0.2),
 	)
 	llm, err := getOllamaClient(m.LLMName)
 	if err != nil {
 		return "", fmt.Errorf("cannot get ollama: %w", err)
 	}
 	c := chains.NewConversationalRetrievalQAFromLLM(llm, rec, mem)
-	//chains.Call()
-	return chains.Run(ctx, c, question, chains.WithStreamingFunc(streamingFunc))
+	// input["question"] = text
+	// r, err := chains.Call(ctx, c, input, chains.WithStreamingFunc(streamingFunc))
+	// if err != nil {
+	// 	return "", fmt.Errorf("chains.chall error: %w", err)
+	// }
+	// for k, v := range r {
+	// 	slog.Info("Call response", "k", k, "v", v)
+	// }
+	// return "", nil
+	return chains.Run(ctx, c, text, chains.WithStreamingFunc(streamingFunc))
 }
 
 func (m *ChromaModel) getChroma() (*chroma.Store, error) {
