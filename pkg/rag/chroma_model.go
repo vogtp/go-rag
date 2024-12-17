@@ -89,11 +89,7 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 		slog.Warn("No history", "err",err)
 	}
 
-	//FIXME make those number configable
-	// docs, err := store.SimilaritySearch(ctx, question, 3, vectorstores.WithScoreThreshold(0.3))
-	// if err != nil {
-	// 	return "", fmt.Errorf("cannot search the docs: %w", err)
-	// }
+	
 	rec := vectorstores.ToRetriever(
 		store,
 		7,
