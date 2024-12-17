@@ -18,11 +18,7 @@ type OllamaModel struct {
 	Name    string
 	LLMName string
 
-	// Collection      string
 	OwnedBy string
-	// Path            string
-	// Template        string
-	// Documents_Count int
 }
 
 func (m OllamaModel) GetName() string {
@@ -43,18 +39,8 @@ func (m OllamaModel) ToOpenAI() openai.Model {
 	}
 }
 
-// Depricated -> implement the calling functions (or even better generate models)
-func (m OllamaModel) getOllamaClient() (llms.Model, error) {
-	url := viper.GetString("url")
-	slog.Info("connecting to ollama", "OllamaModel", m.LLMName, "url", url)
-	return ollama.New(
-		ollama.WithModel(m.LLMName),
-		ollama.WithServerURL(url),
-	)
-}
-
 func (m OllamaModel) GenerateContent(ctx context.Context, messages []llms.MessageContent, temperature float64, streamingFunc StreamingFunc) (string, error) {
-	llm, err := m.getOllamaClient()
+	llm, err := getOllamaClient(m.LLMName)
 	if err != nil {
 		return "", fmt.Errorf("cannot get ollama client: %w", err)
 	}
@@ -71,4 +57,15 @@ func (m OllamaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 	}
 
 	return respString, err
+}
+
+// getOllamaClient returns a ollama client
+// it is used not only in the OllamaModel
+func getOllamaClient(llmName string) (*ollama.LLM, error) {
+	url := viper.GetString("url")
+	slog.Info("connecting to ollama", "OllamaModel", llmName, "url", url)
+	return ollama.New(
+		ollama.WithModel(llmName),
+		ollama.WithServerURL(url),
+	)
 }

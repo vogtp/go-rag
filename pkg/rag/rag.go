@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
+	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
 
 type Manager struct {
@@ -36,21 +37,20 @@ func New(ctx context.Context, slog *slog.Logger) *Manager {
 }
 
 func (m *Manager) updateModelsFromChroma(ctx context.Context, slog *slog.Logger) error {
-	//FIXME move to new interface and use chains
 
-	// v, err := vecdb.New(ctx, slog)
-	// if err != nil {
-	// 	return fmt.Errorf("cannot connect to chroma: %w", err)
-	// }
-	// collections, err := v.ListCollections(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("cannot list chroma collections: %w", err)
-	// }
+	v, err := vecdb.New(ctx, slog)
+	if err != nil {
+		return fmt.Errorf("cannot connect to chroma: %w", err)
+	}
+	collections, err := v.ListCollections(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot list chroma collections: %w", err)
+	}
 
-	// model := viper.GetString(cfg.ModelDefault)
-	// for _, c := range collections {
-	// 	m.models = append(m.models, Model{Name: c.Name, Collection: c.Name, LLMName: model})
-	// }
+	model := viper.GetString(cfg.ModelDefault)
+	for _, c := range collections {
+		m.models = append(m.models, ChromaModel{Name: c.Name, Collection: c.Name, LLMName: model})
+	}
 	return nil
 }
 
