@@ -20,9 +20,8 @@ type Manager struct {
 
 func New(ctx context.Context, slog *slog.Logger) *Manager {
 	m := Manager{
-		slog: slog,
-
-		models: []Model{{Name: "llama3.1", LLMName: viper.GetString(cfg.ModelDefault)}},
+		slog:   slog,
+		models: []Model{{Name: viper.GetString(cfg.ModelDefault), LLMName: viper.GetString(cfg.ModelDefault)}},
 	}
 
 	if err := m.updateModelsFromChroma(ctx, slog); err != nil {
