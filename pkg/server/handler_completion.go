@@ -92,8 +92,8 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 			return nil
 		})
 		if err != nil {
-			slog.Error("ollama error", "err", err)
-			http.Error(w, fmt.Sprintf("ollama error: %v", err), http.StatusInternalServerError)
+			slog.Error("llm backend error", "err", err)
+			http.Error(w, fmt.Sprintf("llm backend error: %v", err), http.StatusInternalServerError)
 			return
 		}
 		slog.Debug("Generate content finished", "resp", resp)
