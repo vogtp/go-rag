@@ -67,7 +67,7 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 		if err != nil {
 			return fmt.Errorf("cannot search the docs: %w", err)
 		}
-		fmt.Printf("**************\nQuestion: %s\nDocs: %v\n", question, len(docs))
+		fmt.Printf("\n**************\nQuestion: %s\nDocs: %v\n", question, len(docs))
 		// for i, d := range docs {
 		// 	fmt.Printf("Doc %v score: %v -> %v %v\n", i, d.Score, d.PageContent, d.Metadata)
 		// }
@@ -85,13 +85,22 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 		// cov := chains.NewConversationalRetrievalQA(llmChain, nil, rec, mem)
 		// endChain := chains.NewRefineDocuments(&conversationChain, vecDBChain)
 
-		result, err := chains.Run(ctx, c, question)
+		// ############################################### STREAMING FUNC
+		streamingFuncOpt := chains.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
+			_, err := fmt.Print(string(chunk))
+			return err
+		})
+
+		fmt.Printf("\nRes: %v\n", "ConversationalRetrieval")
+		_, err = chains.Run(ctx, c, question, streamingFuncOpt)
 		if err != nil {
 			return fmt.Errorf("cannot run chain: %w", err)
 		}
-		fmt.Printf("Res: %v\n", result)
+
+
+		fmt.Printf("\nRes2: %v\n", "Chain with prompt")
 		llmChain := chains.NewLLMChain(llm, prompts.NewPromptTemplate(" ddd", nil))
-		result, err = chains.Run(
+		_, err = chains.Run(
 			ctx,
 			chains.NewRetrievalQAFromLLM(
 				llmChain.LLM,
@@ -102,24 +111,23 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 					//vectorstores.WithScoreThreshold(0.8),
 				),
 			),
-			question,
+			question, streamingFuncOpt,
 			//"City with a population of more than 5",
 		)
 		if err != nil {
 			return fmt.Errorf("cannot run chain: %w", err)
 		}
-		fmt.Printf("Res2: %v\n", result)
 
 		stuffQAChain := chains.LoadStuffQA(llm)
 
-		answer, err := chains.Call(context.Background(), stuffQAChain, map[string]any{
+		fmt.Printf("\nRes3: %v\n", "QA stuff")
+		_, err = chains.Call(context.Background(), stuffQAChain, map[string]any{
 			"input_documents": docs,
 			"question":        question,
-		})
+		}, streamingFuncOpt)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Res3: %v\n", answer["text"])
 	}
 	return nil
 }
