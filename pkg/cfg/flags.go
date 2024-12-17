@@ -51,7 +51,7 @@ func init() {
 	pflag.Bool(LogSource, false, "Log the source line")
 	pflag.Bool(LogJson, false, "Log in json")
 
-	pflag.String(ModelDefault, "llama3.1", "The default model when no model is given")
+	pflag.String(ModelDefault, "llama3.2-vision", "The default model when no model is given")
 	pflag.String(ModelEmbedding, "mxbai-embed-large", "The default model used for embeddings")
 
 	pflag.String(ConfluenceKey, "", "The confluence access token")
