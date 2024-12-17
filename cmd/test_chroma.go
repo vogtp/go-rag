@@ -45,7 +45,7 @@ var chromaCmd = &cobra.Command{
 }
 
 var chromaColCmd = &cobra.Command{
-	Use:     "owm <collection_name>",
+	Use:     "own <collection_name>",
 	Short:   "Run chroma own text example",
 	Aliases: []string{"c", "collection", "col", "o"},
 	CompletionOptions: cobra.CompletionOptions{
@@ -58,6 +58,7 @@ var chromaColCmd = &cobra.Command{
 		return chromaVecDBOwn(cmd.Context(), args[0])
 	},
 }
+
 var chromaExampleCmd = &cobra.Command{
 	Use:     "example",
 	Short:   "Run chroma exmple from upstream",
