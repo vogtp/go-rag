@@ -8,13 +8,10 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/vectorstores/chroma"
 )
 
 func addchroma() {
 	testCmd.AddCommand(chromaCmd)
-	chromaCmd.AddCommand(chromaDelCmd)
-	chromaCmd.AddCommand(chromaExampleCmd)
 	chromaCmd.AddCommand(chromaColCmd)
 }
 
@@ -56,46 +53,6 @@ var chromaColCmd = &cobra.Command{
 			return cmd.Usage()
 		}
 		return chromaVecDBOwn(cmd.Context(), args[0])
-	},
-}
-
-var chromaExampleCmd = &cobra.Command{
-	Use:     "example",
-	Short:   "Run chroma exmple from upstream",
-	Aliases: []string{"e"},
-	CompletionOptions: cobra.CompletionOptions{
-		DisableDefaultCmd: true,
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return chromaVecDBExample(cmd.Context())
-	},
-}
-
-var chromaDelCmd = &cobra.Command{
-	Use:     "delete",
-	Short:   "delete collection",
-	Aliases: []string{"del", "d"},
-	CompletionOptions: cobra.CompletionOptions{
-		DisableDefaultCmd: true,
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-
-		_, e, err := getEmbedding("mxbai-embed-large")
-		if err != nil {
-			return err
-		}
-		store, err := chroma.New(
-			chroma.WithChromaURL(chromeURL),
-			chroma.WithNameSpace(index),
-			chroma.WithEmbedder(e),
-		)
-		if err != nil {
-			return fmt.Errorf("cannot create chroma client: %w", err)
-		}
-		if err := store.RemoveCollection(); err != nil {
-			return fmt.Errorf("cannot remove collection: %w", err)
-		}
-		return nil
 	},
 }
 

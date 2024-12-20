@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,7 +18,8 @@ func main() {
 
 	go func() {
 		select {
-		case <-signals:
+		case s := <- signals:
+			slog.Warn("Got signal", "sig", s)
 			cancel()
 		case <-ctx.Done():
 		}

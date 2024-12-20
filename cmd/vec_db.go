@@ -53,7 +53,7 @@ var vecDbStartChromaCmd = &cobra.Command{
 	Use:   "start chroma",
 	Short: "start a chroma container",
 
-	Aliases: []string{},
+	Aliases: []string{"run", "r"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return chroma.EnsureStarted(slog.Default(), cmd.Context(), "8000")

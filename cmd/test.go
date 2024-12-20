@@ -33,17 +33,6 @@ var testCmd = &cobra.Command{
 		return cmd.Usage()
 	},
 }
-var testScaperCmd = &cobra.Command{
-	Use:     "scraper",
-	Short:   "Test scraper",
-	Aliases: []string{"s"},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		//_, err := rag.WebScrapRag(cmd.Context(), "https://its.unibas.ch
-		_, err := rag.WebScrapRag(cmd.Context(), "https://its.unibas.ch/de/anleitungen/e-mail-kalender/mail-zugang/")
-
-		return err
-	},
-}
 
 var testRagCmd = &cobra.Command{
 	Use:     "rag",

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	"github.com/tmc/langchaingo/tools"
+	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
 
 const (
@@ -30,8 +30,6 @@ type Scraper struct {
 	Blacklist []string
 	Async     bool
 }
-
-var _ tools.Tool = Scraper{}
 
 //var _ documentloaders.Loader = Scraper{}
 
@@ -93,15 +91,18 @@ func (s Scraper) Description() string {
 // It returns a string containing the scraped data and an error if any.
 //
 //nolint:all
-func (s Scraper) Call(ctx context.Context, input string) (string, error) {
+func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.EmbeddDocument) error {
+	defer close(docsOutput)
 	_, err := url.ParseRequestURI(input)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
 	}
 
 	c := colly.NewCollector(
 		colly.MaxDepth(s.MaxDepth),
 		colly.Async(s.Async),
+		// colly.MaxDepth(1),
+		//colly.Debugger(&debug.LogDebugger{Prefix: "XXX"}),
 	)
 
 	err = c.Limit(&colly.LimitRule{
@@ -110,7 +111,7 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 		Delay:       time.Duration(s.Delay) * time.Second,
 	})
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
 	}
 
 	var siteData stringBuilder
@@ -125,8 +126,12 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 	})
 
 	c.OnHTML("html", func(e *colly.HTMLElement) {
+		if ctx.Err() != nil {
+			slog.Info("Context canceled", "err", ctx.Err())
+			return
+		}
 		currentURL := e.Request.URL.String()
-
+		siteData.Reset()
 		// Only process the page if it hasn't been visited yet
 		scrapedLinksMutex.Lock()
 		if !scrapedLinks[currentURL] {
@@ -134,7 +139,7 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 			scrapedLinksMutex.Unlock()
 
 			siteData.WriteString("\n\nPage URL: " + currentURL)
-
+			slog.Info("Processing Page", "URL", currentURL)
 			title := e.ChildText("title")
 			if title != "" {
 				siteData.WriteString("\nPage Title: " + title)
@@ -143,6 +148,15 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 			description := e.ChildAttr("meta[name=description]", "content")
 			if description != "" {
 				siteData.WriteString("\nPage Description: " + description)
+			}
+			doc := vecdb.EmbeddDocument{
+				IDMetaKey:   vecdb.MetaURL,
+				IDMetaValue: currentURL,
+				Title:       title,
+				MetaData:    make(map[string]any),
+			}
+			if len(description) > 0 {
+				doc.MetaData["description"] = description
 			}
 
 			siteData.WriteString("\nHeaders:")
@@ -154,6 +168,10 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 			e.ForEach("p", func(_ int, el *colly.HTMLElement) {
 				siteData.WriteString("\n" + el.Text)
 			})
+
+			doc.Document = siteData.String()
+
+			docsOutput <- doc
 
 			if currentURL == input {
 				e.ForEach("a", func(_ int, el *colly.HTMLElement) {
@@ -171,6 +189,10 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 	})
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		if ctx.Err() != nil {
+			slog.Info("Context canceled", "err", ctx.Err())
+			return
+		}
 		link := e.Attr("href")
 		absoluteLink := e.Request.AbsoluteURL(link)
 
@@ -204,7 +226,11 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 			scrapedLinksMutex.RUnlock()
 			err := c.Visit(u.String())
 			if err != nil {
-				slog.WarnContext(ctx, "Error following link","link", link,"err", err)
+				if errors.Is(err, colly.ErrAlreadyVisited) {
+					slog.DebugContext(ctx, "Not following link", "link", link, "err", err)
+				} else {
+					slog.WarnContext(ctx, "Error following link", "link", link, "err", err)
+				}
 			}
 		} else {
 			scrapedLinksMutex.RUnlock()
@@ -213,21 +239,15 @@ func (s Scraper) Call(ctx context.Context, input string) (string, error) {
 
 	err = c.Visit(input)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
 	}
 
 	select {
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return ctx.Err()
 	default:
 		c.Wait()
 	}
 
-	// Append all scraped links
-	siteData.WriteString("\n\nScraped Links:")
-	for link := range scrapedLinks {
-		siteData.WriteString("\n" + link)
-	}
-
-	return siteData.String(), nil
+	return nil
 }
