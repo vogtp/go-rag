@@ -18,6 +18,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
+// GetDocuments retrives confluence spaces and generates vecdb.EmbeddDocuments
 func GetDocuments(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument, error) {
 	baseURL := viper.GetString(cfg.ConfluenceBaseURL)
 	baseURL = strings.TrimRight(baseURL, "/")
