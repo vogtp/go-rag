@@ -1,0 +1,27 @@
+<!-- Embed the header.html template at this location-->
+{{ template "header.gohtml" .}}
+
+
+   <div id="search">
+    
+
+<form class="form-inline">
+  <div class="form-group mb-2">
+    <label for="query">Search {{ .Collection }}:</label>
+    <button type="submit" class="btn btn-primary mb-2">Search</button>
+    <input type="text" class="form-control" id="query" name="query" placeholder="Search query">
+  </div>
+</form>
+
+   </div>
+   <div id="result">
+   {{ range .Documents }}
+   <h4> {{ .Title }} </h4>
+   <div> {{.URL}} </div>
+   {{ end }}
+   
+   </div>
+
+
+<!-- Embed the footer.html template at this location -->
+{{ template "footer.gohtml" .}}

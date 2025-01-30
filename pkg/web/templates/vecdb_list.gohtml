@@ -1,0 +1,14 @@
+<!-- Embed the header.html template at this location-->
+{{ template "header.gohtml" .}}
+
+
+<div>
+<p>List of active collections:</p>
+
+{{ range .Collections }}
+<a href="{{$.Path}}/{{.Name}}">{{ .Name }}</a>
+{{end}}
+</div>
+
+<!-- Embed the footer.html template at this location -->
+{{ template "footer.gohtml" .}}

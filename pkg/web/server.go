@@ -15,6 +15,8 @@ import (
 type Server struct {
 	slog *slog.Logger
 
+	baseURL string
+
 	httpSrv *http.Server
 	mux     *http.ServeMux
 
@@ -42,10 +44,13 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 func (srv *Server) Run(ctx context.Context, addr string) error {
 	srv.slog = srv.slog.With("listem_addr", addr)
 	srv.httpSrv.Addr = addr
-
 	srv.mux = http.NewServeMux()
 
+	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
+
 	srv.openAiAPI("/api")
+	srv.mux.HandleFunc("/search/", srv.vecDBlist)
+	srv.mux.HandleFunc("/search/{collection}", srv.vecDBsearch)
 
 	srv.slog.Warn("Listen for incoming requests")
 	srv.httpSrv.Handler = srv.mux
@@ -53,18 +58,18 @@ func (srv *Server) Run(ctx context.Context, addr string) error {
 	return srv.httpSrv.ListenAndServe()
 }
 
-func (srv *Server) openAiAPI(basePath string) {
-	if !strings.HasSuffix(basePath, "/") {
-		basePath = fmt.Sprintf("%s/", basePath)
+func (srv *Server) openAiAPI(apiBasePath string) {
+	if !strings.HasSuffix(apiBasePath, "/") {
+		apiBasePath = fmt.Sprintf("%s/", apiBasePath)
 	}
-	if !strings.HasPrefix(basePath, "/") {
-		basePath = fmt.Sprintf("/%s", basePath)
+	if !strings.HasPrefix(apiBasePath, "/") {
+		apiBasePath = fmt.Sprintf("/%s", apiBasePath)
 	}
-	srv.slog.Info("Registering openAI API","basePath",basePath)
-	srv.mux.HandleFunc(fmt.Sprintf("POST %scompletions", basePath), srv.completionHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("POST %schat/completions", basePath), srv.chatCompletionHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels", basePath), srv.modelsHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels/{model}", basePath), srv.modelsHandler)
+	srv.slog.Info("Registering openAI API", "basePath", apiBasePath)
+	srv.mux.HandleFunc(fmt.Sprintf("POST %scompletions", apiBasePath), srv.completionHandler)
+	srv.mux.HandleFunc(fmt.Sprintf("POST %schat/completions", apiBasePath), srv.chatCompletionHandler)
+	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels", apiBasePath), srv.modelsHandler)
+	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels/{model}", apiBasePath), srv.modelsHandler)
 }
 
 func (srv *Server) closeOnCtxDone(ctx context.Context) {

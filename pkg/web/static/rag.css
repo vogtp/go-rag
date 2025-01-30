@@ -1,0 +1,34 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+form {
+    padding: 5px;
+}
+
+#content {
+    min-height: 100%;
+    position: relative;
+    padding: auto;
+}
+
+#search {
+    height: 70px;
+}
+
+#result {
+    padding: 5px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: auto;
+}
+
+#footer {
+    padding: 2px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
