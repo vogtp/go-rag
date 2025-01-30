@@ -6,10 +6,10 @@ import (
 	"log/slog"
 
 	"github.com/sashabaranov/go-openai"
-	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/vogtp/rag/pkg/cfg"
 )
 
 var _ Model = (*OllamaModel)(nil)
@@ -44,7 +44,7 @@ func (m OllamaModel) ToOpenAI() openai.Model {
 }
 
 func (m OllamaModel) GenerateContent(ctx context.Context, messages []llms.MessageContent, temperature float64, streamingFunc StreamingFunc) (string, error) {
-	llm, err := getOllamaClient(m.LLMName)
+	llm, err := getOllamaClient(ctx, m.LLMName)
 	if err != nil {
 		return "", fmt.Errorf("cannot get ollama client: %w", err)
 	}
@@ -65,8 +65,8 @@ func (m OllamaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 
 // getOllamaClient returns a ollama client
 // it is used not only in the OllamaModel
-func getOllamaClient(llmName string) (*ollama.LLM, error) {
-	url := viper.GetString("url")
+func getOllamaClient(ctx context.Context, llmName string) (*ollama.LLM, error) {
+	url := cfg.GetOllamaHost(ctx)
 	slog.Info("connecting to ollama", "OllamaModel", llmName, "url", url)
 	return ollama.New(
 		ollama.WithModel(llmName),

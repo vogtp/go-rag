@@ -53,7 +53,7 @@ func (m ChromaModel) ToOpenAI() openai.Model {
 }
 
 func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.MessageContent, temperature float64, streamingFunc StreamingFunc) (string, error) {
-	store, err := m.getChroma()
+	store, err := m.getChroma(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +99,7 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 		// vectorstores.WithNameSpace(index),
 		vectorstores.WithScoreThreshold(0.2),
 	)
-	llm, err := getOllamaClient(m.LLMName)
+	llm, err := getOllamaClient(ctx, m.LLMName)
 	if err != nil {
 		return "", fmt.Errorf("cannot get ollama: %w", err)
 	}
@@ -116,11 +116,11 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 	return chains.Run(ctx, c, text, chains.WithStreamingFunc(streamingFunc))
 }
 
-func (m *ChromaModel) getChroma() (*chroma.Store, error) {
+func (m *ChromaModel) getChroma(ctx context.Context) (*chroma.Store, error) {
 	if m.chroma != nil {
 		return m.chroma, nil
 	}
-	e, err := m.getEmbedder()
+	e, err := m.getEmbedder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create embedder: %w", err)
 	}
@@ -136,12 +136,12 @@ func (m *ChromaModel) getChroma() (*chroma.Store, error) {
 	return &store, nil
 }
 
-func (m *ChromaModel) getEmbedder() (*embeddings.EmbedderImpl, error) {
+func (m *ChromaModel) getEmbedder(ctx context.Context) (*embeddings.EmbedderImpl, error) {
 	if m.embedder != nil {
 		return m.embedder, nil
 	}
 	model := viper.GetString(cfg.ModelEmbedding)
-	llm, err := getOllamaClient(model)
+	llm, err := getOllamaClient(ctx, model)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create llm client: %w", err)
 	}

@@ -46,7 +46,7 @@ const (
 
 func init() {
 	pflag.Bool(CfgSave, false, "Should the configs be written to file periodically")
-	pflag.String(CfgFile, fmt.Sprintf("%s.yml", APP_NAME), "File with the config to load")
+	pflag.String(CfgFile, fmt.Sprintf("%s.yml", appName), "File with the config to load")
 	pflag.String(LogLevel, "warn", "Set the loglevel: error warn info debug trace off")
 	pflag.Bool(LogSource, false, "Log the source line")
 	pflag.Bool(LogJson, false, "Log in json")

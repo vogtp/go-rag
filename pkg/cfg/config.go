@@ -11,10 +11,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-const APP_NAME = "ragctl"
+const appName = "ragctl"
 
-const (
-)
+const ()
 
 func init() {
 }
@@ -36,16 +35,15 @@ func Parse() {
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		slog.Error("cannot bin flags", "error", err)
 	}
-	capName := strings.ToUpper(APP_NAME)
+	capName := strings.ToUpper(appName)
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(viper.GetString(CfgFile))
 	viper.AddConfigPath(".")
-	viper.AddConfigPath(fmt.Sprintf("/etc/%s/", APP_NAME))
-	viper.AddConfigPath(fmt.Sprintf("/%s/", APP_NAME))
-	viper.AddConfigPath(fmt.Sprintf("$HOME/.%s/", APP_NAME))
+	viper.AddConfigPath(fmt.Sprintf("/etc/%s/", appName))
+	viper.AddConfigPath(fmt.Sprintf("/%s/", appName))
+	viper.AddConfigPath(fmt.Sprintf("$HOME/.%s/", appName))
 	viper.AddConfigPath(fmt.Sprintf("$%s_HOME/", capName))
 	viper.AddConfigPath(fmt.Sprintf("$%s_ROOT/", capName))
-
 
 	viper.SetEnvPrefix(capName)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

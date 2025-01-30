@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vogtp/rag/pkg/rag"
-	"github.com/vogtp/rag/pkg/server"
+	"github.com/vogtp/rag/pkg/web"
 )
 
 func addWeb() {
@@ -30,7 +30,7 @@ var webStartCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("cannot start rag backend: %w", err)
 		}
-		api := server.New(slog, rag)
+		api := web.New(slog, rag)
 		return api.Run(cmd.Context(), ":4444")
 	},
 }

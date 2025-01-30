@@ -1,4 +1,4 @@
-package server
+package web
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/vogtp/rag/pkg/rag"
 )
 
-func (a API) completionHandler(w http.ResponseWriter, r *http.Request) {
+func (srv Server) completionHandler(w http.ResponseWriter, r *http.Request) {
 	var req openai.CompletionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -36,7 +36,7 @@ func (a API) completionHandler(w http.ResponseWriter, r *http.Request) {
 	// rag.handleCompletion(&req, ragModel, w, r)
 }
 
-func (a API) chatCompletionHandler(w http.ResponseWriter, r *http.Request) {
+func (srv Server) chatCompletionHandler(w http.ResponseWriter, r *http.Request) {
 	var req openai.ChatCompletionRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -45,24 +45,24 @@ func (a API) chatCompletionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	slog := slog.With("model", req.Model)
 	slog.Info("Completition Request")
-	ragModel, err := a.rag.Model(req.Model)
+	ragModel, err := srv.rag.Model(req.Model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	if req.Stream {
-		a.handleCompletionStream(&req, ragModel, w, r)
+		srv.handleCompletionStream(&req, ragModel, w, r)
 		return
 	}
 	//a.handleChatCompletion(&req, ragModel, w, r)
 }
 
-func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel rag.Model, w http.ResponseWriter, r *http.Request) {
+func (srv Server) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel rag.Model, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	msgs := make([]llms.MessageContent, 0, len(req.Messages)*3)
 	for i, m := range req.Messages {
-		a.slog.Info("Chat message", "role", m.Role, "content", m.Content, "idx", i)
+		srv.slog.Info("Chat message", "role", m.Role, "content", m.Content, "idx", i)
 		role := rag.RoleOpenAI2langchain(m.Role)
 		// if len(ragModel.Collection) > 0 && role == llms.ChatMessageTypeHuman {
 		// 	docs, err := getDocs(ctx, ragModel.Collection, m.Content)
@@ -99,14 +99,14 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 		slog.Debug("Generate content finished", "resp", resp)
 	}()
 
-	a.setStreamHeaders(w)
+	srv.setStreamHeaders(w)
 	stream(ctx, w, func(w io.Writer) bool {
 		data := []byte("data: ")
 		// chunk data
 		if chunk, ok := <-resChan; ok {
 			// chunk, err := json.Marshal(res)
 			if chunk == nil {
-				a.slog.Warn("Stream error data is nil")
+				srv.slog.Warn("Stream error data is nil")
 				if _, err := w.Write([]byte("data: [ERROR]\n\n")); err != nil {
 					slog.Warn("Cannot write streaming bytes", "err", err)
 					return false
@@ -124,7 +124,7 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 				return false
 			}
 			// write
-			a.slog.Debug("http stram", "chunk", chunk, "out", res.Choices[0].Delta.Content)
+			srv.slog.Debug("http stram", "chunk", chunk, "out", res.Choices[0].Delta.Content)
 			data = append(data, paypload...)
 			data = append(data, []byte("\n\n")...)
 			_, err = w.Write(data)
@@ -142,7 +142,7 @@ func (a API) handleCompletionStream(req *openai.ChatCompletionRequest, ragModel 
 			slog.Warn("Cannot write streaming DONE", "err", err)
 			return false
 		}
-		a.slog.Debug("Finished streaming")
+		srv.slog.Debug("Finished streaming")
 		return false
 	})
 }
@@ -163,7 +163,7 @@ func stream(ctx context.Context, w http.ResponseWriter, step func(w io.Writer) b
 }
 
 func generateChatStreamResponse(ragModel rag.Model, chunk []byte) *openai.ChatCompletionStreamResponse {
-	id := PrefixID("chatcmpl-")
+	id := prefixID("chatcmpl-")
 	res := openai.ChatCompletionStreamResponse{
 		ID:      id,
 		Object:  "chat.completion.chunk",
@@ -187,7 +187,7 @@ func generateChatStreamResponse(ragModel rag.Model, chunk []byte) *openai.ChatCo
 
 const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func PrefixID(prefix string, length ...int) string {
+func prefixID(prefix string, length ...int) string {
 	l := 29
 	if len(length) > 0 {
 		l = length[0]

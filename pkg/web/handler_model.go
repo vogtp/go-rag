@@ -1,4 +1,4 @@
-package server
+package web
 
 import (
 	"encoding/json"
@@ -9,10 +9,10 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func (a API) modelsHandler(w http.ResponseWriter, r *http.Request) {
+func (srv Server) modelsHandler(w http.ResponseWriter, r *http.Request) {
 	var ret any
 	if name := r.PathValue("model"); len(name) > 0 {
-		rm, err := a.rag.Model(name)
+		rm, err := srv.rag.Model(name)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("model %s not found", name), http.StatusNotAcceptable)
 			return
@@ -20,7 +20,7 @@ func (a API) modelsHandler(w http.ResponseWriter, r *http.Request) {
 		ret = rm.ToOpenAI()
 	} else {
 		mdls := openai.ModelsList{}
-		for _, m := range a.rag.Models(r.Context()) {
+		for _, m := range srv.rag.Models(r.Context()) {
 			mdls.Models = append(mdls.Models, m.ToOpenAI())
 		}
 		ret = mdls
@@ -33,5 +33,5 @@ func (a API) modelsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	slog.Info("returned /models")
+	slog.Info("returned /models", "Models", ret)
 }
