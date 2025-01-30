@@ -35,7 +35,7 @@ func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error)
 		v.ollamaAddr = cfg.GetOllamaHost(ctx)
 	}
 	if len(v.ollamaAddr) < 1 {
-		return nil, fmt.Errorf("no ollama address given")
+		return nil, fmt.Errorf("no ollama address given: %q", v.ollamaAddr)
 	}
 	if len(v.chromaAddr) < 1 {
 		return nil, fmt.Errorf("no chroma address given")
