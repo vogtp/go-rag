@@ -25,6 +25,10 @@ func (m OllamaModel) GetName() string {
 	return m.Name
 }
 
+func (m OllamaModel) String() string {
+	return m.GetName()
+}
+
 func (m OllamaModel) GetLLMName() string {
 	return m.LLMName
 }

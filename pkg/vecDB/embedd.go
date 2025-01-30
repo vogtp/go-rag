@@ -41,6 +41,7 @@ func (v *VecDB) Embedd(ctx context.Context, collectionName string, in <-chan Emb
 
 	for d := range in {
 		slog = slogBase.With(d.IDMetaKey, d.IDMetaValue)
+		slog.InfoContext(ctx, "Embedding document")
 		res, err := coll.Get(ctx, map[string]interface{}{d.IDMetaKey: d.IDMetaValue}, nil, nil, nil)
 		if err != nil {
 			return fmt.Errorf("cannot check for existing docs: %w", err)

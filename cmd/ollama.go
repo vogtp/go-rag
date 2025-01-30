@@ -16,21 +16,6 @@ func addOllama() {
 	rootCmd.AddCommand(ollamaCmd)
 }
 
-func ollamaFlags() {
-	addFlagOllamaUrl(ollamaCmd)
-	if err := viper.BindPFlags(ollamaCmd.Flags()); err != nil {
-		slog.Error("Cannot bind ollama flags", "err", err)
-	}
-}
-
-const (
-	flagURL = "url"
-)
-
-func addFlagOllamaUrl(cmd *cobra.Command) {
-	cmd.Flags().String(flagURL, "http://llama-1.its.unibas.ch:11434", "Ollama URL")
-}
-
 var ollamaCmd = &cobra.Command{
 	Use:     "ollama",
 	Short:   "Run ollama stuff",
@@ -43,8 +28,8 @@ var ollamaCmd = &cobra.Command{
 	},
 }
 
-func getOllamaClient(model string) (*ollama.LLM, error) {
-	url := viper.GetString(flagURL)
+func getOllamaClient(ctx context.Context, model string) (*ollama.LLM, error) {
+	url := cfg.GetOllamaHost(ctx)
 	slog.Info("connecting to ollama", "model", model, "url", url)
 	return ollama.New(
 		ollama.WithModel(model),
@@ -53,7 +38,7 @@ func getOllamaClient(model string) (*ollama.LLM, error) {
 }
 
 func ollamaChat(ctx context.Context) error {
-	llm, err := getOllamaClient(viper.GetString(cfg.ModelDefault))
+	llm, err := getOllamaClient(ctx, viper.GetString(cfg.ModelDefault))
 	if err != nil {
 		return fmt.Errorf("cannot create ollama connection: %w", err)
 	}

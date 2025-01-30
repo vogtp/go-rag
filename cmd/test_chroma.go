@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -22,7 +23,6 @@ const (
 )
 
 func chromaFlags() {
-	addFlagOllamaUrl(chromaCmd)
 	chromaCmd.PersistentFlags().Bool(deleteCollectionFlag, false, "delete collection")
 	if err := viper.BindPFlags(chromaCmd.PersistentFlags()); err != nil {
 		slog.Warn("cannot bind chroma flags", "err", err)
@@ -56,8 +56,8 @@ var chromaColCmd = &cobra.Command{
 	},
 }
 
-func getEmbedding(model string) (llms.Model, *embeddings.EmbedderImpl, error) {
-	llm, err := getOllamaClient(model)
+func getEmbedding(ctx context.Context, model string) (llms.Model, *embeddings.EmbedderImpl, error) {
+	llm, err := getOllamaClient(ctx, model)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create ollama client: %w", err)
 	}

@@ -9,7 +9,6 @@ import (
 func New() *cobra.Command {
 
 	rootFlags()
-	ollamaFlags()
 	chromaFlags()
 	testFlags()
 
@@ -21,8 +20,8 @@ func New() *cobra.Command {
 	addVecDB()
 	addOllama()
 	addchroma()
+	addWeb()
 	addTest()
-
 
 	return rootCmd
 }

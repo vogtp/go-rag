@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -15,10 +16,11 @@ import (
 type Manager struct {
 	slog *slog.Logger
 
+	vecDB  *vecdb.VecDB
 	models []Model
 }
 
-func New(ctx context.Context, slog *slog.Logger) *Manager {
+func New(ctx context.Context, slog *slog.Logger) (*Manager, error) {
 	m := Manager{
 		slog: slog,
 		models: []Model{
@@ -28,21 +30,21 @@ func New(ctx context.Context, slog *slog.Logger) *Manager {
 			},
 		},
 	}
-
-	if err := m.updateModelsFromChroma(ctx, slog); err != nil {
-		slog.Warn("Cannot get collections from chroma", "err", err)
-	}
-
-	return &m
-}
-
-func (m *Manager) updateModelsFromChroma(ctx context.Context, slog *slog.Logger) error {
-
 	v, err := vecdb.New(ctx, slog)
 	if err != nil {
-		return fmt.Errorf("cannot connect to chroma: %w", err)
+		return nil, fmt.Errorf("cannot connect to chroma: %w", err)
 	}
-	collections, err := v.ListCollections(ctx)
+	m.vecDB = v
+	if err := m.updateModelsFromChroma(ctx); err != nil {
+		return nil, fmt.Errorf("cannot get collections from chroma: %w", err)
+	}
+
+	return &m, nil
+}
+
+func (m *Manager) updateModelsFromChroma(ctx context.Context) error {
+
+	collections, err := m.vecDB.ListCollections(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot list chroma collections: %w", err)
 	}
@@ -51,10 +53,18 @@ func (m *Manager) updateModelsFromChroma(ctx context.Context, slog *slog.Logger)
 	for _, c := range collections {
 		m.models = append(m.models, ChromaModel{Name: c.Name, Collection: c.Name, LLMName: model})
 	}
+	m.slog.Info("Models raw ","models", m.models)
+	slices.SortFunc(m.models, func(a, b Model) int { return strings.Compare(a.GetName(), b.GetName()) })
+	m.slog.Info("Models sort","models", m.models)
+	m.models = slices.CompactFunc(m.models, func(a, b Model) bool { return strings.EqualFold(a.GetName(), b.GetName()) })
+	m.slog.Info("Models comp","models", m.models)
 	return nil
 }
 
-func (m Manager) Models() []Model {
+func (m *Manager) Models(ctx context.Context) []Model {
+	if err:=m.updateModelsFromChroma(ctx); err != nil {
+		m.slog.WarnContext(ctx, "Cannot update models from chroma", "err", err)
+	}
 	return m.models
 }
 

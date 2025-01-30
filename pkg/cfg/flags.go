@@ -30,8 +30,8 @@ const (
 	// ModelEmbedding is the default model used for embeddings
 	ModelEmbedding = "model.embedding"
 
-	// OllamaHosts is host:port
-	OllamaHosts = "ollama.hosts"
+	// OllamaHosts is an URL
+	ollamaHosts = "ollama.hosts"
 
 	// ChromaUrl the URL where chroma can be reached
 	ChromaUrl = "chroma.url"

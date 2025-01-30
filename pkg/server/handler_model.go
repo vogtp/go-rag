@@ -20,7 +20,7 @@ func (a API) modelsHandler(w http.ResponseWriter, r *http.Request) {
 		ret = rm.ToOpenAI()
 	} else {
 		mdls := openai.ModelsList{}
-		for _, m := range a.rag.Models() {
+		for _, m := range a.rag.Models(r.Context()) {
 			mdls.Models = append(mdls.Models, m.ToOpenAI())
 		}
 		ret = mdls

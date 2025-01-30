@@ -34,6 +34,10 @@ func (m ChromaModel) GetName() string {
 	return m.Name
 }
 
+func (m ChromaModel) String() string {
+	return m.GetName()
+}
+
 func (m ChromaModel) GetLLMName() string {
 	return m.LLMName
 }
@@ -68,7 +72,7 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 		case llms.ChatMessageTypeAI:
 			err = mem.ChatHistory.AddAIMessage(ctx, text)
 		case llms.ChatMessageTypeHuman:
-			err = mem.ChatHistory.AddUserMessage(ctx,text)
+			err = mem.ChatHistory.AddUserMessage(ctx, text)
 		case llms.ChatMessageTypeSystem:
 			err = mem.ChatHistory.AddMessage(ctx, llms.SystemChatMessage{Content: text})
 		default:
@@ -85,11 +89,10 @@ func (m ChromaModel) GenerateContent(ctx context.Context, messages []llms.Messag
 	slog.Info("sending final question to vecDB", "question", text)
 	if h, err := mem.ChatHistory.Messages(ctx); err == nil {
 		slog.Info("Added history", "size", len(h))
-	}else{
-		slog.Warn("No history", "err",err)
+	} else {
+		slog.Warn("No history", "err", err)
 	}
 
-	
 	rec := vectorstores.ToRetriever(
 		store,
 		7,

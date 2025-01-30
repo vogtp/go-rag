@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 	"github.com/vogtp/rag/pkg/vecDB/chroma"
@@ -61,7 +60,7 @@ var vecDbStartChromaCmd = &cobra.Command{
 }
 
 var vecDbEmbbedCmd = &cobra.Command{
-	Use:   "embedd <collection> <path> <ollama_url>",
+	Use:   "embedd <collection> <path>",
 	Short: "Embbed to content of a path to a collection",
 
 	Aliases: []string{"e", "create"},
@@ -76,22 +75,22 @@ var vecDbEmbbedCmd = &cobra.Command{
 		defer func(t time.Time) {
 			fmt.Printf("Updating collection %s took %s\n", collectionName, time.Since(t))
 		}(start)
-
-		client, err := vecdb.New(cmd.Context(), slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
+		ctx := cmd.Context()
+		client, err := vecdb.New(ctx, slog.Default(), vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
 		if err != nil {
 			return fmt.Errorf("Failed to create vector DB: %w", err)
 		}
 
-		return client.Embedd(cmd.Context(), collectionName, filesystem.Generate(cmd.Context(), path))
+		return client.Embedd(ctx, collectionName, filesystem.Generate(ctx, path))
 	},
 }
 
-func getOllamaHost(args []string) string {
-	if len(args) < 3 {
-		return viper.GetString(cfg.OllamaHosts)
-	}
-	return args[2]
-}
+// func getOllamaHost(args []string) string {
+// 	if len(args) < 3 {
+// 		return viper.GetString(cfg.OllamaHosts)
+// 	}
+// 	return args[2]
+// }
 
 var vecDbSearchCmd = &cobra.Command{
 	Use:   "search <collection> <query>",
@@ -109,18 +108,18 @@ var vecDbSearchCmd = &cobra.Command{
 		defer func(t time.Time) {
 			fmt.Printf("Updating collection %s took %s\n", collectionName, time.Since(t))
 		}(start)
-
-		client, err := vecdb.New(cmd.Context(), slog.Default(), vecdb.WithOllamaAddress(getOllamaHost(args)))
+		ctx := cmd.Context()
+		client, err := vecdb.New(ctx, slog.Default(), vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
 		if err != nil {
 			return fmt.Errorf("Failed to create vector DB: %w", err)
 		}
 
-		res, err := client.Query(cmd.Context(), collectionName, []string{search}, 5)
+		res, err := client.Query(ctx, collectionName, []string{search}, 5)
 		if err != nil {
 			return fmt.Errorf("Failed to query vector DB: %w", err)
 		}
-		for _, r := range res[0].Documents {
-			fmt.Printf("Docu: %+v\n", r)
+		for i, r := range res[0].Documents {
+			fmt.Printf("\n\nDocument %v: %+v\n", i, r)
 		}
 		fmt.Printf("Found %v documents for %q\n", len(res), search)
 		return nil
@@ -137,25 +136,26 @@ var vecDbRmCmd = &cobra.Command{
 		if len(args) < 1 {
 			return cmd.Usage()
 		}
-		client, err := vecdb.New(cmd.Context(), slog.Default())
+		ctx := cmd.Context()
+		client, err := vecdb.New(ctx, slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}
 		if args[0] == "all" {
-			cols, err := client.ListCollections(cmd.Context())
+			cols, err := client.ListCollections(ctx)
 			if err != nil {
 				return err
 			}
 			for _, c := range cols {
 				slog.Info("Deleting collection", "name", c.Name)
-				if err := client.DeleteCollection(cmd.Context(), c.Name); err != nil {
+				if err := client.DeleteCollection(ctx, c.Name); err != nil {
 					return err
 				}
 			}
 			return nil
 		}
 		for _, a := range args {
-			if err := client.DeleteCollection(cmd.Context(), a); err != nil {
+			if err := client.DeleteCollection(ctx, a); err != nil {
 				return err
 			}
 		}
@@ -170,11 +170,12 @@ var vecDbLsCmd = &cobra.Command{
 	Aliases: []string{"list", "show"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := vecdb.New(cmd.Context(), slog.Default())
+		ctx := cmd.Context()
+		client, err := vecdb.New(ctx, slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}
-		cols, err := client.ListCollections(cmd.Context())
+		cols, err := client.ListCollections(ctx)
 		if err != nil {
 			return err
 		}
@@ -197,7 +198,7 @@ var vecDbColLsCmd = &cobra.Command{
 		}
 		colName := args[0]
 		ctx := cmd.Context()
-		client, err := vecdb.New(cmd.Context(), slog.Default())
+		client, err := vecdb.New(ctx, slog.Default())
 		if err != nil {
 			return fmt.Errorf("Failed to create client: %w", err)
 		}

@@ -138,17 +138,17 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 	}
 }
 
-func (c *confluence) getAllSpaces() {
-	panic("Not implemented")
-	// spaces, err := api.GetAllSpaces(conflu.AllSpacesQuery{
-	// 	Type:   "global",
-	// 	Start:  0,
-	// 	Limit:  999,
-	// 	Expand: []string{"space", "body.view", "version", "container"},
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+// func (c *confluence) getAllSpaces() {
+// 	panic("Not implemented")
+// 	// spaces, err := api.GetAllSpaces(conflu.AllSpacesQuery{
+// 	// 	Type:   "global",
+// 	// 	Start:  0,
+// 	// 	Limit:  999,
+// 	// 	Expand: []string{"space", "body.view", "version", "container"},
+// 	// })
+// 	// if err != nil {
+// 	// 	log.Fatal(err)
+// 	// }
 
-	// for _, space := range spaces.Results {
-}
+// 	// for _, space := range spaces.Results {
+// }

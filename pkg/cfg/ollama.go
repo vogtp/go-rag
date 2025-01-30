@@ -12,11 +12,12 @@ import (
 
 var _ollamaHost string
 
+// GetOllamaHost returns a active ollama host
 func GetOllamaHost(ctx context.Context) string {
 	if _ollamaHost != "" {
 		return _ollamaHost
 	}
-	for _, o := range viper.GetStringSlice(OllamaHosts) {
+	for _, o := range viper.GetStringSlice(ollamaHosts) {
 		u, err := url.Parse(o)
 		if err != nil {
 			slog.Warn("Cannot parse ollama url", "url", o, "err", err)

@@ -6,13 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/vogtp/rag/pkg/rag"
-	"github.com/vogtp/rag/pkg/server"
 	"github.com/vogtp/rag/pkg/vecDB/confluence"
 )
 
 func addTest() {
-	testCmd.AddCommand(testRagCmd)
 	testCmd.AddCommand(testScaperCmd)
 	testCmd.AddCommand(testConfluenceCmd)
 	rootCmd.AddCommand(testCmd)
@@ -31,18 +28,6 @@ var testCmd = &cobra.Command{
 	Aliases: []string{"t"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Usage()
-	},
-}
-
-var testRagCmd = &cobra.Command{
-	Use:     "rag",
-	Short:   "Start RAG server",
-	Aliases: []string{"r"},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		slog := slog.Default()
-		rag := rag.New(cmd.Context(), slog)
-		api := server.New(slog, rag)
-		return api.Run(cmd.Context(), ":4444")
 	},
 }
 

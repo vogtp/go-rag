@@ -24,12 +24,12 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 
 	slog.Info("Searching vecDB", "index", index)
 	model := viper.GetString(cfg.ModelDefault)
-	llm, err := getOllamaClient(model)
+	llm, err := getOllamaClient(ctx, model)
 	if err != nil {
 		return fmt.Errorf("cannot load embedding model %s: %w", model, err)
 	}
 
-	_, e, err := getEmbedding("mxbai-embed-large")
+	_, e, err := getEmbedding(ctx, "mxbai-embed-large")
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,6 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 		if err != nil {
 			return fmt.Errorf("cannot run chain: %w", err)
 		}
-
 
 		fmt.Printf("\nRes2: %v\n", "Chain with prompt")
 		llmChain := chains.NewLLMChain(llm, prompts.NewPromptTemplate(" ddd", nil))

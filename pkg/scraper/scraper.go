@@ -153,6 +153,7 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: currentURL,
 				Title:       title,
+				Modified: time.Now(),
 				MetaData:    make(map[string]any),
 			}
 			if len(description) > 0 {
@@ -170,7 +171,7 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 			})
 
 			doc.Document = siteData.String()
-
+			slog.Debug("Sending document to embedder")
 			docsOutput <- doc
 
 			if currentURL == input {
@@ -248,6 +249,6 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 	default:
 		c.Wait()
 	}
-
+	slog.InfoContext(ctx, "Finished scrapping", "url", input)
 	return nil
 }
