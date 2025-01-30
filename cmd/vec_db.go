@@ -27,7 +27,7 @@ var vecDbCmd = &cobra.Command{
 	Use:   "vecdb",
 	Short: "manage the vector DB",
 
-	Aliases: []string{"v", "vec"},
+	Aliases: []string{"v", "vec", "vecDB"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Usage()
