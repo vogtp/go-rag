@@ -11,6 +11,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/spf13/viper"
+	"github.com/vogtp/rag/pkg/cfg"
 )
 
 type Container struct {
@@ -24,7 +26,7 @@ type Container struct {
 
 func NewContainer(slog *slog.Logger) (*Container, error) {
 	containerName := "chroma"
-	imageName := "chromadb/chroma"
+	imageName := viper.GetString(cfg.ChromaContainer)
 	c := &Container{
 		containerName: containerName,
 		imageName:     imageName,
@@ -41,7 +43,7 @@ func NewContainer(slog *slog.Logger) (*Container, error) {
 	return c, nil
 }
 
-func EnsureStarted(slog *slog.Logger, ctx context.Context, port string) error {
+func EnsureStarted(slog *slog.Logger, ctx context.Context, port int) error {
 	c, err := NewContainer(slog)
 	if err != nil {
 		return err
@@ -50,8 +52,11 @@ func EnsureStarted(slog *slog.Logger, ctx context.Context, port string) error {
 	return err
 }
 
-func (c *Container) EnsureStarted(ctx context.Context, port string) (func(ctx context.Context) error, error) {
-	id, running, err := c.getOrCreateContainer(ctx, port)
+func (c *Container) EnsureStarted(ctx context.Context, port int) (func(ctx context.Context) error, error) {
+	if port < 1 {
+		return func(ctx context.Context) error { return nil }, nil
+	}
+	id, running, err := c.getOrCreateContainer(ctx, fmt.Sprintf("%v", port))
 	if err != nil {
 		return nil, fmt.Errorf("cannot find docker image: %w", err)
 	}
@@ -138,7 +143,7 @@ func (c *Container) create(ctx context.Context, port string) (string, error) {
 		sl.Info(fmt.Sprintf("%v", resp["status"]))
 	}
 	hostCfg := &container.HostConfig{
-		PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(port): {{ HostPort: port}}},
+		PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(port): {{HostPort: port}}},
 		// Mounts: []mount.Mount{
 		// 	{
 		// 		Type:   mount.TypeVolume,

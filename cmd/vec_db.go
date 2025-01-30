@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 	"github.com/vogtp/rag/pkg/vecDB/chroma"
@@ -57,7 +58,7 @@ var vecDbStartChromaCmd = &cobra.Command{
 	Aliases: []string{"run", "r"},
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return chroma.EnsureStarted(slog.Default(), cmd.Context(), "8000")
+		return chroma.EnsureStarted(slog.Default(), cmd.Context(), viper.GetInt(cfg.ChromaPort))
 	},
 }
 
@@ -142,11 +143,11 @@ var vecDbLsCmd = &cobra.Command{
 		ctx := cmd.Context()
 		client, err := vecdb.New(ctx, slog.Default())
 		if err != nil {
-			return fmt.Errorf("Failed to create client: %w", err)
+			return fmt.Errorf("failed to create client: %w", err)
 		}
 		cols, err := client.ListCollections(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot list collections: %w", err)
 		}
 		for _, c := range cols {
 			fmt.Printf("%s\n", c.Name)

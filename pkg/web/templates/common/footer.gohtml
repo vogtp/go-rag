@@ -1,8 +1,13 @@
 
 
    <div id="footer">
+    {{ if .StatusMessage }}
+    <small> 
+      {{ .StatusMessage }}
+    </small>
+    {{end}}
     {{ if .Version }}
-    <small>Version: {{ .Version }}</small>
+      <small>Version: {{ .Version }}</small>
     {{ end }}
   </div>
 </div>

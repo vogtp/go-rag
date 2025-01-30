@@ -29,15 +29,18 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 		Collection: collection,
 		Query:      query,
 	}
-	ctx := r.Context()
-	maxResults := 15
-	docs, err := searchVecDB(ctx, slog, collection, query, maxResults)
-	if err != nil {
-		slog.Error("Cannot query vecDB", "err", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	data.StatusMessage = fmt.Sprintf("Last %s update: %v", collection, srv.lastEmbedd[collection])
+	if len(query) > 0 {
+		ctx := r.Context()
+		maxResults := 15
+		docs, err := searchVecDB(ctx, slog, collection, query, maxResults)
+		if err != nil {
+			slog.Error("Cannot query vecDB", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		data.Documents = docs
 	}
-	data.Documents = docs
 	srv.render(w, r, "vecdb_search.gohtml", data)
 }
 

@@ -30,12 +30,12 @@ func (v *VecDB) Embedd(ctx context.Context, collectionName string, in <-chan Emb
 	slog.Info("Starting embedding")
 	embedFunc, err := v.GetEmbeddingFunc()
 	if err != nil {
-		return fmt.Errorf("Error creating ollama embedding function: %s \n", err)
+		return fmt.Errorf("error creating ollama embedding function: %w", err)
 	}
 
 	coll, err := v.CreateCollection(ctx, collectionName, map[string]interface{}{MetaIsRag: true, MetaCreated: time.Now().Unix})
 	if err != nil {
-		return fmt.Errorf("Failed to create collection: %v", err)
+		return fmt.Errorf("failed to create collection: %v", err)
 	}
 	docUpdated := 0
 

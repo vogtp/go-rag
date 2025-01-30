@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/rag"
 )
 
@@ -20,14 +22,16 @@ type Server struct {
 	httpSrv *http.Server
 	mux     *http.ServeMux
 
-	rag *rag.Manager
+	rag        *rag.Manager
+	lastEmbedd map[string]time.Time
 }
 
 // New creates a new webserver
 func New(slog *slog.Logger, rag *rag.Manager) *Server {
 	a := &Server{
-		slog: slog,
-		rag:  rag,
+		slog:       slog,
+		rag:        rag,
+		lastEmbedd: make(map[string]time.Time),
 	}
 	a.httpSrv = &http.Server{
 		ReadTimeout:       10 * time.Second,
@@ -41,10 +45,14 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 }
 
 // Run starts the webserver in foreground
-func (srv *Server) Run(ctx context.Context, addr string) error {
+func (srv *Server) Run(ctx context.Context) error {
+	addr := viper.GetString(cfg.WebListen)
 	srv.slog = srv.slog.With("listem_addr", addr)
 	srv.httpSrv.Addr = addr
 	srv.mux = http.NewServeMux()
+	if err := srv.schedulePeriodicVecDBUpdates(ctx); err != nil {
+		slog.Error("Cannot start periodic embedding", "err", err)
+	}
 
 	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
 

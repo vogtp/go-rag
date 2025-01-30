@@ -6,7 +6,8 @@
 <p>List of active collections:</p>
 
 {{ range .Collections }}
-<a href="{{$.Path}}/{{.Name}}">{{ .Name }}</a>
+    <a href="{{$.Path}}/{{.Name}}">{{ .Name }}</a>
+    <hr />
 {{end}}
 </div>
 

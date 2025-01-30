@@ -15,10 +15,11 @@ import (
 var vecDbEmbbedCmd = &cobra.Command{
 	Use:   "embedd",
 	Short: "Embbed to content to a collection",
+	Aliases: []string{"e", "emb", "embbed"},
 }
 
 var vecDbEmbbedPathCmd = &cobra.Command{
-	Use:   "embedd path <collection> <path>",
+	Use:   "path <collection> <path>",
 	Short: "Embbed to content of a path to a collection",
 
 	Aliases: []string{"path", "p", "dir"},
@@ -46,7 +47,7 @@ var vecDbEmbbedPathCmd = &cobra.Command{
 var vecDbEmbbedConfluenceCmd = &cobra.Command{
 	Use:     "confluence",
 	Short:   "Embbed confluence spaces into a collection",
-	Aliases: []string{"conf"},
+	Aliases: []string{"conf", "c"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		slog := slog.Default()
 		ctx := cmd.Context()

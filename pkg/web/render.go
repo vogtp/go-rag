@@ -18,10 +18,11 @@ var (
 )
 
 type commonData struct {
-	Title   string
-	Baseurl string
-	Version string
-	Query   string
+	Title         string
+	Baseurl       string
+	Version       string
+	StatusMessage string
+	Query         string
 }
 
 func (srv Server) common(t string, r *http.Request) *commonData {
@@ -42,7 +43,7 @@ func (srv Server) common(t string, r *http.Request) *commonData {
 	// if theme, err := r.Cookie("theme"); err == nil && theme.Value == "dark" {
 	// 	cd.Theme = theme.Value
 	// }
-	srv.slog.Debug("Prepaired common data", "title",t)
+	srv.slog.Debug("Prepaired common data", "title", t)
 	return cd
 }
 

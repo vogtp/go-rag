@@ -22,7 +22,7 @@ func (v *VecDB) Query(ctx context.Context, collection string, queryTexts []strin
 	if err != nil {
 		return nil, fmt.Errorf("cannot get collection %s: %w", collection, err)
 	}
-	qr, err := col.Query(ctx, queryTexts, 2, nil, nil, nil)
+	qr, err := col.Query(ctx, queryTexts, nResults, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

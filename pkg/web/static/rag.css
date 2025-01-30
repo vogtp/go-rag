@@ -9,6 +9,10 @@ form {
     padding: 5px;
 }
 
+hr {
+    padding-bottom: 5px;
+}
+
 #content {
     min-height: 100%;
     position: relative;
@@ -19,10 +23,16 @@ form {
     height: 70px;
 }
 
+#searchHeader {
+    font-weight: bold;
+    font-size: large;
+}
+
 #result {
     padding: 5px;
     padding-top: 20px;
     padding-bottom: 20px;
+    height: 100%;
     overflow: auto;
 }
 

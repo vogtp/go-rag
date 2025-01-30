@@ -9,15 +9,16 @@
   <div class="form-group mb-2">
     <label for="query">Search {{ .Collection }}:</label>
     <button type="submit" class="btn btn-primary mb-2">Search</button>
-    <input type="text" class="form-control" id="query" name="query" placeholder="Search query">
+    <input type="text" class="form-control" id="query" name="query" value="{{.Query}}" placeholder="Search query">
   </div>
 </form>
 
    </div>
    <div id="result">
    {{ range .Documents }}
-   <h4> {{ .Title }} </h4>
-   <div> {{.URL}} </div>
+   <div class="searchHeader"> {{ .Title }} </div>
+   <div> <a href="{{.URL}}">{{.URL}} </a> </div>
+   <hr />
    {{ end }}
    
    </div>
