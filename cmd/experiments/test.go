@@ -1,4 +1,4 @@
-package cmd
+package experiments
 
 import (
 	"log/slog"
@@ -7,8 +7,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func addTest() {
+// Add s
+func Add(rootCmd *cobra.Command) {
 	testCmd.AddCommand(testScaperCmd)
+	testCmd.AddCommand(chromaCmd)
+	chromaCmd.AddCommand(chromaColCmd)
 	rootCmd.AddCommand(testCmd)
 }
 

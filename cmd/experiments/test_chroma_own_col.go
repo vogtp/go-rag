@@ -1,4 +1,4 @@
-package cmd
+package experiments
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/documentloaders"
+	"github.com/tmc/langchaingo/llms/ollama"
 	"github.com/tmc/langchaingo/memory"
 	"github.com/tmc/langchaingo/prompts"
 	"github.com/tmc/langchaingo/schema"
@@ -24,7 +25,7 @@ func chromaVecDBOwn(ctx context.Context, index string) error {
 
 	slog.Info("Searching vecDB", "index", index)
 	model := viper.GetString(cfg.ModelDefault)
-	llm, err := getOllamaClient(ctx, model)
+	llm, err := ollama.New(ollama.WithModel(model), ollama.WithServerURL(cfg.GetOllamaHost(ctx)))
 	if err != nil {
 		return fmt.Errorf("cannot load embedding model %s: %w", model, err)
 	}

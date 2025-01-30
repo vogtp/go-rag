@@ -1,33 +1,20 @@
-package cmd
+package experiments
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/ollama"
+	"github.com/vogtp/rag/pkg/cfg"
 )
-
-func addchroma() {
-	testCmd.AddCommand(chromaCmd)
-	chromaCmd.AddCommand(chromaColCmd)
-}
 
 const (
-	deleteCollectionFlag = "delete"
-	chromeURL            = "http://localhost:8000"
-	index                = "vogtp_test_rag"
+	chromeURL = "http://localhost:8000"
+	index     = "vogtp_test_rag"
 )
-
-func chromaFlags() {
-	chromaCmd.PersistentFlags().Bool(deleteCollectionFlag, false, "delete collection")
-	if err := viper.BindPFlags(chromaCmd.PersistentFlags()); err != nil {
-		slog.Warn("cannot bind chroma flags", "err", err)
-	}
-}
 
 var chromaCmd = &cobra.Command{
 	Use:     "chroma",
@@ -57,7 +44,7 @@ var chromaColCmd = &cobra.Command{
 }
 
 func getEmbedding(ctx context.Context, model string) (llms.Model, *embeddings.EmbedderImpl, error) {
-	llm, err := getOllamaClient(ctx, model)
+	llm, err := ollama.New(ollama.WithModel(model), ollama.WithServerURL(cfg.GetOllamaHost(ctx)))
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create ollama client: %w", err)
 	}

@@ -2,26 +2,34 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/vogtp/rag/cmd/experiments"
 	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/logger"
 )
 
+// New creates a cobra
 func New() *cobra.Command {
-
-	rootFlags()
-	chromaFlags()
-	testFlags()
 
 	cfg.Parse()
 	logger.New()
 
-	addRoot()
-
 	addVecDB()
 	addOllama()
-	addchroma()
 	addWeb()
-	addTest()
+	experiments.Add(rootCmd)
 
 	return rootCmd
+}
+
+var rootCmd = &cobra.Command{
+	Use:   "ragctl",
+	Short: "RAG commandline",
+	// SilenceUsage:  true,
+	// SilenceErrors: true,
+	// CompletionOptions: cobra.CompletionOptions{
+	// 	DisableDefaultCmd: true,
+	// },
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Print(cmd.UsageString())
+	},
 }
