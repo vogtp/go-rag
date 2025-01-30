@@ -45,7 +45,7 @@ func (srv *Server) Run(ctx context.Context, addr string) error {
 
 	srv.mux = http.NewServeMux()
 
-	srv.openAiAPI("/") //"/api")
+	srv.openAiAPI("/api")
 
 	srv.slog.Warn("Listen for incoming requests")
 	srv.httpSrv.Handler = srv.mux
@@ -56,6 +56,9 @@ func (srv *Server) Run(ctx context.Context, addr string) error {
 func (srv *Server) openAiAPI(basePath string) {
 	if !strings.HasSuffix(basePath, "/") {
 		basePath = fmt.Sprintf("%s/", basePath)
+	}
+	if !strings.HasPrefix(basePath, "/") {
+		basePath = fmt.Sprintf("/%s", basePath)
 	}
 	srv.slog.Info("Registering openAI API","basePath",basePath)
 	srv.mux.HandleFunc(fmt.Sprintf("POST %scompletions", basePath), srv.completionHandler)
