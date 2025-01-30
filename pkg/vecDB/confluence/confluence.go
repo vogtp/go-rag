@@ -18,12 +18,12 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func Generate(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument, error) {
-	baseUrl := viper.GetString(cfg.ConfluenceBaseURL)
-	baseUrl = strings.TrimRight(baseUrl, "/")
+func GetDocuments(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument, error) {
+	baseURL := viper.GetString(cfg.ConfluenceBaseURL)
+	baseURL = strings.TrimRight(baseURL, "/")
 	conf := confluence{
-		slog:       slog.With("confluence_url", baseUrl),
-		baseUrl:    baseUrl,
+		slog:       slog.With("confluence_url", baseURL),
+		baseURL:    baseURL,
 		out:        make(chan vecdb.EmbeddDocument, 10),
 		accessKey:  viper.GetString(cfg.ConfluenceKey),
 		rateLimit:  rate.Limit(0.4),
@@ -39,7 +39,7 @@ func Generate(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument
 
 type confluence struct {
 	slog       *slog.Logger
-	baseUrl    string
+	baseURL    string
 	out        chan vecdb.EmbeddDocument
 	api        *conflu.API
 	accessKey  string
@@ -50,7 +50,7 @@ type confluence struct {
 }
 
 func (c *confluence) init() error {
-	url := c.getApiUrl()
+	url := c.getAPIURL()
 	api, err := conflu.NewAPI(url, "", c.accessKey)
 	if err != nil {
 		return err
@@ -64,12 +64,12 @@ func (c *confluence) init() error {
 	return nil
 }
 
-func (c *confluence) getApiUrl() string {
-	return c.getUrl("/rest/api")
+func (c *confluence) getAPIURL() string {
+	return c.getURL("/rest/api")
 }
 
-func (c *confluence) getUrl(ui string) string {
-	return fmt.Sprintf("%s%s", c.baseUrl, ui)
+func (c *confluence) getURL(ui string) string {
+	return fmt.Sprintf("%s%s", c.baseURL, ui)
 }
 
 func (c *confluence) query(ctx context.Context) {
@@ -116,7 +116,7 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 			txt := html2text.HTML2Text(d.Body.View.Value)
 			doc := vecdb.EmbeddDocument{
 				Title:       d.Title,
-				URL:         c.getUrl(d.Links.WebUI),
+				URL:         c.getURL(d.Links.WebUI),
 				Document:    txt,
 				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: d.Links.WebUI,
