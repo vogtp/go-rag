@@ -9,18 +9,20 @@ import (
 	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 	"github.com/vogtp/rag/pkg/vecDB/chroma"
-	"github.com/vogtp/rag/pkg/vecDB/filesystem"
 )
 
 func addVecDB() {
 	rootCmd.AddCommand(vecDbCmd)
 	vecDbCmd.AddCommand(vecDbStartChromaCmd)
 	vecDbCmd.AddCommand(vecDbStopChromaCmd)
-	vecDbCmd.AddCommand(vecDbEmbbedCmd)
 	vecDbCmd.AddCommand(vecDbRmCmd)
 	vecDbCmd.AddCommand(vecDbLsCmd)
 	vecDbCmd.AddCommand(vecDbSearchCmd)
 	vecDbCmd.AddCommand(vecDbColLsCmd)
+
+	vecDbCmd.AddCommand(vecDbEmbbedCmd)
+	vecDbEmbbedCmd.AddCommand(vecDbEmbbedPathCmd)
+	vecDbEmbbedCmd.AddCommand(vecDbEmbbedConfluenceCmd)
 }
 
 var vecDbCmd = &cobra.Command{
@@ -58,39 +60,6 @@ var vecDbStartChromaCmd = &cobra.Command{
 		return chroma.EnsureStarted(slog.Default(), cmd.Context(), "8000")
 	},
 }
-
-var vecDbEmbbedCmd = &cobra.Command{
-	Use:   "embedd <collection> <path>",
-	Short: "Embbed to content of a path to a collection",
-
-	Aliases: []string{"e", "create"},
-	Long:    ``,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 2 {
-			return cmd.Usage()
-		}
-		collectionName := args[0]
-		path := args[1]
-		start := time.Now()
-		defer func(t time.Time) {
-			fmt.Printf("Updating collection %s took %s\n", collectionName, time.Since(t))
-		}(start)
-		ctx := cmd.Context()
-		client, err := vecdb.New(ctx, slog.Default(), vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
-		if err != nil {
-			return fmt.Errorf("Failed to create vector DB: %w", err)
-		}
-
-		return client.Embedd(ctx, collectionName, filesystem.Generate(ctx, path))
-	},
-}
-
-// func getOllamaHost(args []string) string {
-// 	if len(args) < 3 {
-// 		return viper.GetString(cfg.OllamaHosts)
-// 	}
-// 	return args[2]
-// }
 
 var vecDbSearchCmd = &cobra.Command{
 	Use:   "search <collection> <query>",

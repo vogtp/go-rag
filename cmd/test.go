@@ -1,19 +1,14 @@
 package cmd
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/vogtp/rag/pkg/cfg"
-	vecdb "github.com/vogtp/rag/pkg/vecDB"
-	"github.com/vogtp/rag/pkg/vecDB/confluence"
 )
 
 func addTest() {
 	testCmd.AddCommand(testScaperCmd)
-	testCmd.AddCommand(testConfluenceCmd)
 	rootCmd.AddCommand(testCmd)
 }
 
@@ -30,26 +25,5 @@ var testCmd = &cobra.Command{
 	Aliases: []string{"t"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Usage()
-	},
-}
-
-var testConfluenceCmd = &cobra.Command{
-	Use: "confluence ",
-	// Short:   "Start RAG server",
-	Aliases: []string{"conf"},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		slog := slog.Default()
-		ctx := cmd.Context()
-		collectionName := "confluence"
-		c, err := confluence.GetDocuments(ctx, slog)
-		if err != nil {
-			return err
-		}
-		client, err := vecdb.New(ctx, slog, vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
-		if err != nil {
-			return fmt.Errorf("Failed to create vector DB: %w", err)
-		}
-
-		return client.Embedd(ctx, collectionName, c)
 	},
 }
