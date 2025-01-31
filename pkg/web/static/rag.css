@@ -16,7 +16,7 @@ hr {
 #content {
     min-height: 100%;
     position: relative;
-    padding: auto;
+    padding: 20px;
 }
 
 #search {
