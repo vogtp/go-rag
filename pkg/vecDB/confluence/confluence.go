@@ -3,7 +3,6 @@ package confluence
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"strings"
 	"sync"
@@ -19,7 +18,7 @@ import (
 )
 
 // GetDocuments retrives confluence spaces and generates vecdb.EmbeddDocuments
-func GetDocuments(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocument, error) {
+func GetDocuments(ctx context.Context, slog *slog.Logger, spaces ...string) (chan vecdb.EmbeddDocument, error) {
 	baseURL := viper.GetString(cfg.ConfluenceBaseURL)
 	baseURL = strings.TrimRight(baseURL, "/")
 	conf := confluence{
@@ -29,7 +28,10 @@ func GetDocuments(ctx context.Context, slog *slog.Logger) (chan vecdb.EmbeddDocu
 		accessKey:  viper.GetString(cfg.ConfluenceKey),
 		rateLimit:  rate.Limit(0.4),
 		queryLimit: 100,
-		spaces:     viper.GetStringSlice(cfg.ConfluenceSpaces),
+		spaces:     spaces,
+	}
+	if len(spaces) < 1 {
+		conf.spaces = viper.GetStringSlice(cfg.ConfluenceSpaces)
 	}
 	if err := conf.init(); err != nil {
 		return nil, err
@@ -102,7 +104,9 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 			Expand:   []string{"space", "body.view", "version", "container", "body.storage", "metadata", "history.lastUpdated"},
 		})
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("Cannot get confluence content...", "err", err, "start_index", start)
+			time.Sleep(10 * time.Millisecond)
+			continue
 		}
 		start += res.Limit
 		total += res.Size
@@ -121,7 +125,7 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 				Document:    txt,
 				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: d.Links.WebUI,
-				MetaData: make(map[string]any),
+				MetaData:    make(map[string]any),
 			}
 			// 2016-05-30T16:14:07.787+02:00
 			if t, err := time.Parse(time.RFC3339Nano, d.History.LastUpdated.When); err == nil {

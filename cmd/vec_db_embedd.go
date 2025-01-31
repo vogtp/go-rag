@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -47,26 +45,17 @@ var vecDbEmbbedPathCmd = &cobra.Command{
 }
 
 var vecDbEmbbedConfluenceCmd = &cobra.Command{
-	Use:     "confluence",
+	Use:     "confluence <collection_name>",
 	Short:   "Embbed confluence spaces into a collection",
 	Aliases: []string{"conf", "c"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		slog := slog.Default()
 		ctx := cmd.Context()
-		collectionName := "confluence"
-		c, err := confluence.GetDocuments(ctx, slog)
-		if err != nil {
-			return err
+		if len(args) < 1 {
+			return cmd.Usage()
 		}
-		client, err := vecdb.New(ctx, slog, vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
-		if err != nil {
-			return fmt.Errorf("Failed to create vector DB: %w", err)
-		}
+		collectionName := args[0]
 
-		err = client.Embedd(ctx, collectionName, c)
-		if errors.Is(err, context.Canceled) {
-			err = nil
-		}
-		return err
+		return confluence.Embbed(ctx, slog, collectionName)
 	},
 }

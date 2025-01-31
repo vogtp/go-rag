@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sort"
+	"strings"
 
 	chroma "github.com/amikos-tech/chroma-go"
 
@@ -34,10 +36,11 @@ func (srv Server) vecDBlist(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error listing vectorDB collections: %v", err), http.StatusInternalServerError)
 		return
 	}
-	// data.Collections = make([]string, len(cols))
-	// for i, c := range cols {
-	// 	data.Collections[i] = c.Name
-	// }
+
+	sort.Slice(cols, func(i, j int) bool {
+		return strings.Compare(cols[i].Name, cols[j].Name) > 0
+	})
+
 	data.Collections = cols
 	srv.render(w, r, "vecdb_list.gohtml", data)
 }
