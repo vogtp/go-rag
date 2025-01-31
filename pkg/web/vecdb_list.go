@@ -36,9 +36,12 @@ func (srv Server) vecDBlist(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error listing vectorDB collections: %v", err), http.StatusInternalServerError)
 		return
 	}
+	for i, c := range cols {
+		cols[i].Name = strings.ToLower(c.Name)
+	}
 
 	sort.Slice(cols, func(i, j int) bool {
-		return strings.Compare(cols[i].Name, cols[j].Name) > 0
+		return strings.Compare(cols[i].Name, cols[j].Name) < 0
 	})
 
 	data.Collections = cols
