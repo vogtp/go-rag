@@ -48,3 +48,8 @@ hr {
     text-overflow: ellipsis;
     height: 5em;
 }
+
+.error {
+    padding: 50px;
+    color: crimson;
+}

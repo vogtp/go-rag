@@ -27,13 +27,13 @@ func (srv Server) vecDBlist(w http.ResponseWriter, r *http.Request) {
 	client, err := vecdb.New(ctx, slog)
 	if err != nil {
 		slog.Error("Failed to create vectorDB client", "err", err)
-		http.Error(w, fmt.Sprintf("Failed to create vectorDB client: %v", err), http.StatusInternalServerError)
+		srv.Error(w, r, fmt.Sprintf("Failed to create vectorDB client: %v", err), http.StatusInternalServerError)
 		return
 	}
 	cols, err := client.ListCollections(ctx)
 	if err != nil {
 		slog.Error("Error listing vectorDB collections", "err", err)
-		http.Error(w, fmt.Sprintf("Error listing vectorDB collections: %v", err), http.StatusInternalServerError)
+		srv.Error(w, r, fmt.Sprintf("Error listing vectorDB collections: %v", err), http.StatusInternalServerError)
 		return
 	}
 

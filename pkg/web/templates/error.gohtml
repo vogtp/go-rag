@@ -1,0 +1,14 @@
+<!-- Embed the header.html template at this location-->
+{{ template "header.gohtml" .}}
+
+
+<div class="error">
+<p>{{ .Code }}</p>
+<p>{{ .Error }}</p>
+</div>
+<div class="error">
+<a href="/">Try again...</a>
+</div>
+
+<!-- Embed the footer.html template at this location -->
+{{ template "footer.gohtml" .}}

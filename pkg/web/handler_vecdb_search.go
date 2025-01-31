@@ -19,7 +19,7 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	collection := r.PathValue("collection")
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		srv.Error(w, r, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	query := r.FormValue("query")
@@ -61,7 +61,7 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 		docs, err := searchVecDB(ctx, slog, collection, query, maxResults)
 		if err != nil {
 			slog.Error("Cannot query vecDB", "err", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			srv.Error(w, r, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		cmpFunc := func(a, b vecdb.QueryDocument) bool {
