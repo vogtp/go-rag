@@ -31,5 +31,6 @@ var rootCmd = &cobra.Command{
 	// },
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Print(cmd.UsageString())
+		cmd.Printf("Version %v", cfg.Version)
 	},
 }

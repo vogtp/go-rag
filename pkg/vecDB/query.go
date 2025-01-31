@@ -14,6 +14,7 @@ type QueryDocument struct {
 	Modified string
 	URL      string
 	Title    string
+	IDField  string
 }
 
 func (v *VecDB) Query(ctx context.Context, collection string, queryTexts []string, nResults int32) ([]QueryResult, error) {
@@ -45,6 +46,9 @@ func (v *VecDB) Query(ctx context.Context, collection string, queryTexts []strin
 			}
 			if t, ok := metaData[MetaTitle].(string); ok {
 				doc.Title = t
+			}
+			if t, ok := metaData[MetaIDKey].(string); ok {
+				doc.IDField = t
 			}
 
 			res.Documents[i] = doc

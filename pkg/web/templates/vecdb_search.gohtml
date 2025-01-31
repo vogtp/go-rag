@@ -11,13 +11,17 @@
     <button type="submit" class="btn btn-primary mb-2">Search</button>
     <input type="text" class="form-control" id="query" name="query" value="{{.Query}}" placeholder="Search query">
   </div>
+  
 </form>
 
    </div>
    <div id="result">
    {{ range .Documents }}
    <div class="searchHeader"> {{ .Title }} </div>
-   <div> <a href="{{.URL}}">{{.URL}} </a> </div>
+   <div> <a target="_blank" href="{{.URL}}">{{.URL}} </a> </div>
+   <small class="summary">
+   {{.Content}}
+   </small>
    <hr />
    {{ end }}
    

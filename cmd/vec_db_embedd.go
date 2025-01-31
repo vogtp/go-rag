@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -13,8 +15,8 @@ import (
 )
 
 var vecDbEmbbedCmd = &cobra.Command{
-	Use:   "embedd",
-	Short: "Embbed to content to a collection",
+	Use:     "embedd",
+	Short:   "Embbed to content to a collection",
 	Aliases: []string{"e", "emb", "embbed"},
 }
 
@@ -61,6 +63,10 @@ var vecDbEmbbedConfluenceCmd = &cobra.Command{
 			return fmt.Errorf("Failed to create vector DB: %w", err)
 		}
 
-		return client.Embedd(ctx, collectionName, c)
+		err = client.Embedd(ctx, collectionName, c)
+		if errors.Is(err, context.Canceled) {
+			err = nil
+		}
+		return err
 	},
 }

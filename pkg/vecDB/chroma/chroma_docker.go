@@ -151,9 +151,9 @@ func (c *Container) create(ctx context.Context, port string) (string, error) {
 		// 		Source: "/chroma/chroma",
 		// 	},
 		// },
-		// Binds: []string{
-		// 	"./chroma:/chroma/chroma",
-		// },
+		Binds: []string{
+			"./chroma:/srv/chroma",
+		},
 	}
 	resp, err := c.cli.ContainerCreate(ctx, containerCfg, hostCfg, nil, nil, c.containerName)
 	if err != nil {

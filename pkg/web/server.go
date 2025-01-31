@@ -34,8 +34,8 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 		lastEmbedd: make(map[string]time.Time),
 	}
 	a.httpSrv = &http.Server{
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		ReadTimeout: 10 * time.Second,
+		//		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       30 * time.Second,
 		ReadHeaderTimeout: 1 * time.Second,
 		MaxHeaderBytes:    1 << 20,
@@ -59,6 +59,9 @@ func (srv *Server) Run(ctx context.Context) error {
 	srv.openAiAPI("/api")
 	srv.mux.HandleFunc("/search/", srv.vecDBlist)
 	srv.mux.HandleFunc("/search/{collection}", srv.vecDBsearch)
+	srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
+	})
 
 	srv.slog.Warn("Listen for incoming requests")
 	srv.httpSrv.Handler = srv.mux

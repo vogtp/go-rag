@@ -21,6 +21,7 @@ hr {
 
 #search {
     height: 70px;
+    padding-bottom: 15px;
 }
 
 #searchHeader {
@@ -41,4 +42,9 @@ hr {
     position: absolute;
     bottom: 0;
     width: 100%;
+}
+
+#summary {
+    text-overflow: ellipsis;
+    height: 5em;
 }

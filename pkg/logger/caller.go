@@ -26,7 +26,7 @@ func init() {
 }
 
 func trimPackagePath(s string) string {
-	if len(s) > len(srcPrefix) && strings.HasPrefix(s, srcPrefix) {
+	if len(s) > len(srcPrefix)+4 && strings.HasPrefix(s, srcPrefix) {
 		return s[srcPrefixLen:]
 	}
 	return s
