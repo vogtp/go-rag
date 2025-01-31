@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -28,7 +29,7 @@ func Embbed(ctx context.Context, slog *slog.Logger, collectionName string) error
 		o1, o2 := fanOut(c)
 
 		go embbed(ctx, client, fmt.Sprintf("%s-%s", collectionName, "all"), o1)
-		go embbed(ctx, client, fmt.Sprintf("%s-%s", collectionName, space), o2)
+		go embbed(ctx, client, fmt.Sprintf("%s-%s", collectionName, strings.ToLower(space)), o2)
 
 		if ctx.Err() != nil {
 			return ctx.Err()
