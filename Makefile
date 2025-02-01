@@ -16,6 +16,7 @@ user=vogtp
 .PHONY: build
 build: 
 	$(GO_CMD) build $(build_date) -tags prod -o ./build/ . 
+	mv ./build/rag ./build/ragctl
 
 .PHONY: remote-stop
 remote-stop: remote-stop-rag
@@ -37,7 +38,7 @@ remote-restart:	remote-stop-rag remote-start-rag
 
 .PHONY: remote-copy
 remote-copy: 
-	scp ./build/rag $(user)@$(host):srv/rag/
+	scp ./build/ragctl $(user)@$(host):srv/rag/
 
 .PHONY: deploy
 deploy: build remote-stop-rag remote-copy remote-start-rag remote-autocomplete
