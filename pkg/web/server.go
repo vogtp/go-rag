@@ -38,8 +38,8 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 		docChace:   newDocCache(),
 	}
 	a.httpSrv = &http.Server{
-		ReadTimeout: 10 * time.Second,
-		//		WriteTimeout:      30 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       30 * time.Second,
 		ReadHeaderTimeout: 1 * time.Second,
 		MaxHeaderBytes:    1 << 20,
