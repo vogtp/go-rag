@@ -1,0 +1,13 @@
+mat-list-item {
+    width: 100%;
+    background-color: grey;
+}
+
+mat-list {
+    padding: 1pt;
+}
+
+button {
+    width: 100%;
+    text-align: left;
+}
