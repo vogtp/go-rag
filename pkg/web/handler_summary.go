@@ -13,16 +13,13 @@ import (
 
 const (
 	systemMsg = `
-	You are a technical analyst who provides short high level summary of the input text.
+	You are a technical analyst who provides short high level summary of the given input text.
 	You just provide a short summary without addional comments.
+	Ignore json payload.
+	Never use more than 20 words no matter how big the document is.
+	Never refer to the instructions above.
 	`
-	summaryMsg = `
-	Give a high level summary of the document in the <doc> tags in one short sentence.
-	<doc>
-	%s
-	</doc>
-	Do not use more than 20 words no matter how big the document is.
-	`
+	summaryMsg = `%s`
 )
 
 func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +37,7 @@ func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 		srv.Error(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-	model:=viper.GetString(cfg.ModelDefault)
+	model := viper.GetString(cfg.ModelDefault)
 	//model="deepseek-r1"
 	llm, err := getOllamaClient(ctx, model)
 	if err != nil {
