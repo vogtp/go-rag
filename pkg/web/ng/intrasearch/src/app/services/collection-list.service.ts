@@ -1,16 +1,14 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, throwError } from 'rxjs';
-
+import { collectionURL, httpHeaders } from './common';
+  
 @Injectable()
 export class CollectionListService {
 
-  collectionURL = '/search/';
-
-  getCollections(): Observable<CollectionRequest> {
-    console.log("Rest to "+this.collectionURL);
-    
-    return this.http.get<CollectionRequest>(this.collectionURL, { headers: httpHeaders }).pipe(
+  getCollections(): Observable<CollectionListResponse> {
+    console.log("Rest to "+collectionURL);
+    return this.http.get<CollectionListResponse>(collectionURL, { headers: httpHeaders }).pipe(
       catchError(this.handleError)
     );
   }
@@ -30,7 +28,7 @@ export class CollectionListService {
   constructor(private http: HttpClient) { }
 }
 
-export interface CollectionRequest {
+export interface CollectionListResponse {
   Title: string;
   Version: string;
   Collections: Collection[];
@@ -39,9 +37,4 @@ export interface CollectionRequest {
 export interface Collection {
   Name: string;
 }
-
-const httpHeaders: HttpHeaders = new HttpHeaders({
-  //Authorization: 'Bearer JWT-token'
-  Accept: "application/json"
-})
 

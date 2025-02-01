@@ -1,3 +1,14 @@
-<p>search works!</p>
+<div class="container">
+    <header>
+        <input type="text" id="search" [formControl]="searchQuery" (keydown.enter)="search()" placeholder="Search in {{collectionName}}" >
+        <button mat-icon-button (click)="search()"  >
+            <mat-icon>search</mat-icon>
+        </button>
+    </header>
 
-{{collectionName}}
+    <main>
+        <div *ngFor="let doc of searchResult?.Documents">
+        <p>{{doc.Title}}</p>
+        </div>
+    </main>
+</div>

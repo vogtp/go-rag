@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { CollectionListService, CollectionRequest } from '../../services/collection-list.service';
+import { CollectionListResponse, CollectionListService } from '../../services/collection-list.service';
 
 import { MatListModule } from '@angular/material/list';
 import { RouterLink } from '@angular/router';
@@ -13,7 +13,7 @@ import { RouterLink } from '@angular/router';
   styleUrl: './collections-list.component.css'
 })
 export class CollectionsListComponent {
-  collectionRequest: CollectionRequest | undefined;
+  collectionResponse: CollectionListResponse | undefined;
 
   constructor(private collectionService: CollectionListService) {}
 
@@ -21,7 +21,7 @@ export class CollectionsListComponent {
   loadCollections() {
     this.collectionService.getCollections()
       .subscribe(data => {
-        this.collectionRequest = data
+        this.collectionResponse = data
       }
       );
   }
