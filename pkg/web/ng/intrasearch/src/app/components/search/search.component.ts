@@ -6,10 +6,22 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CollectionSearchResponse, CollectionSearchService } from '../../services/collection-search.service';
 import { SearchResultItemComponent } from "../search-result-item/search-result-item.component";
 
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, MatIcon, ReactiveFormsModule, SearchResultItemComponent],
+  imports: [
+    CommonModule,
+    MatIcon,
+    ReactiveFormsModule,
+    SearchResultItemComponent,
+    MatFormFieldModule,
+    MatIcon,
+    MatInputModule,
+  ],
   templateUrl: './search.component.html',
   styleUrl: './search.component.css'
 })
