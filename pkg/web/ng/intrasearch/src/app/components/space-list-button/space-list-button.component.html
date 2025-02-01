@@ -3,6 +3,7 @@
     <mat-icon>menu</mat-icon>
 </button>
 <mat-menu #menu="matMenu" >
+    <div class="menuTitle">Search in:</div>
     <span *ngFor="let col of collectionResponse?.Collections">
         <button mat-menu-item routerLink="/query/{{col.Name}}">{{ col.Name }}</button>
     </span>

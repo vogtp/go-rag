@@ -6,6 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterOutlet } from '@angular/router';
 import { SpaceListButtonComponent } from './components/space-list-button/space-list-button.component';
+import { SettingsButtonComponent } from "./components/settings-button/settings-button.component";
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -17,7 +18,8 @@ import { SpaceListButtonComponent } from './components/space-list-button/space-l
     MatMenuModule,
     MatButtonModule,
     SpaceListButtonComponent,
-  ],
+    SettingsButtonComponent
+],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
