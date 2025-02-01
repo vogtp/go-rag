@@ -12,7 +12,8 @@ header {
 
 main {
     flex-grow: 1;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     min-height: 2em;
 }
 
