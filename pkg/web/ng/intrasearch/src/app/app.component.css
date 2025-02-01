@@ -16,6 +16,7 @@ main {
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 2em;
+    border: 5px;
 }
 
 footer {
