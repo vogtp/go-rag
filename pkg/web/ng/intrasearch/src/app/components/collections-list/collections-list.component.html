@@ -1,1 +1,7 @@
-<p>collections-list works!</p>
+<mat-list role="list" *ngFor="let col of collectionRequest?.Collections">
+    <mat-list-item role="listitem" routerLink="/query/{{col.Name}}" >
+        <button mat-icon-button>
+        {{col.Name}}
+        </button>
+    </mat-list-item>
+</mat-list>
