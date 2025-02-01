@@ -1,20 +1,12 @@
 package web
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strings"
 
 	"github.com/vogtp/rag/pkg/cfg"
-)
-
-var (
-	//go:embed templates static
-	assetData embed.FS
-	templates = template.Must(template.ParseFS(assetData, "templates/*.gohtml", "templates/common/*.gohtml"))
 )
 
 type commonData struct {

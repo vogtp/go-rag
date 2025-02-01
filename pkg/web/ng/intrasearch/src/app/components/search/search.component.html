@@ -8,7 +8,8 @@
 
     <main>
         <div *ngFor="let doc of searchResult?.Documents">
-        <p>{{doc.Title}}</p>
+            <app-search-result-item [doc]="doc" />
+        
         </div>
     </main>
 </div>

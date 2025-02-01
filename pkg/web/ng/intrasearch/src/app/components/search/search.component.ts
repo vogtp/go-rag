@@ -4,11 +4,12 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CollectionSearchResponse, CollectionSearchService } from '../../services/collection-search.service';
+import { SearchResultItemComponent } from "../search-result-item/search-result-item.component";
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, MatIcon, ReactiveFormsModule],
+  imports: [CommonModule, MatIcon, ReactiveFormsModule, SearchResultItemComponent],
   templateUrl: './search.component.html',
   styleUrl: './search.component.css'
 })

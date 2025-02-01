@@ -16,6 +16,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/tmc/langchaingo v0.1.12
 	github.com/virtomize/confluence-go-api v1.4.6
+	github.com/vogtp/go-angular v0.0.0-20240709155651-b3c8f48d6254
 	golang.org/x/time v0.5.0
 )
 

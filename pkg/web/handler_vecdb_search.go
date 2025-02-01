@@ -86,11 +86,7 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 				slog.Warn("Cannot connect to ollama", "err", err)
 
 			}
-		} else {
-			for i := range docs {
-				docs[i].Content = ""
-			}
-		}
+		} 
 		data.Documents = docs
 	}
 	data.StatusMessage = fmt.Sprintf("Duration %v - %v", time.Since(start).Truncate(time.Second), data.StatusMessage)

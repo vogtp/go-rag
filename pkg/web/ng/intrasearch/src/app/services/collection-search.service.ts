@@ -39,6 +39,7 @@ export interface CollectionSearchResponse {
 
 export interface Document {
   Content: string
+  Summary: string
   Modified: string
   URL: string
   Title: string

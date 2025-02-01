@@ -14,9 +14,13 @@ host=its-a-hack.its.unibas.ch
 user=vogtp
 
 .PHONY: build
-build: 
+build: ng-build
 	$(GO_CMD) build $(build_date) -tags prod -o ./build/ . 
 	mv ./build/rag ./build/ragctl
+
+.PHONY: ng-build
+ng-build:
+	cd pkg/web/ng/intrasearch/dist/intrasearch/browser/ ; ng build
 
 .PHONY: remote-stop
 remote-stop: remote-stop-rag

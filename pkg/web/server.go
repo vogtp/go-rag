@@ -3,12 +3,14 @@ package web
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/vogtp/go-angular"
 	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/rag"
 )
@@ -53,15 +55,20 @@ func (srv *Server) Run(ctx context.Context) error {
 	if err := srv.schedulePeriodicVecDBUpdates(ctx); err != nil {
 		slog.Error("Cannot start periodic embedding", "err", err)
 	}
-
+	fsys, err := fs.Sub(assetData, "ng/intrasearch/dist/intrasearch/browser")
+	if err != nil {
+		panic(err)
+	}
+	ngFS := angular.FileSystem(fsys)
+	srv.mux.Handle("/", http.FileServer(ngFS))
 	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
 
 	srv.openAiAPI("/api")
 	srv.mux.HandleFunc("/search/", srv.vecDBlist)
 	srv.mux.HandleFunc("/search/{collection}", srv.vecDBsearch)
-	srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
-	})
+	// srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
+	// })
 
 	srv.slog.Warn("Listen for incoming requests")
 	srv.httpSrv.Handler = srv.mux

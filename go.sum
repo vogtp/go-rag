@@ -360,6 +360,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/virtomize/confluence-go-api v1.4.6 h1:yN1khm2tU0aFc7N7x58QQ+668rko77qIMIhs2f+qEO8=
 github.com/virtomize/confluence-go-api v1.4.6/go.mod h1:a96WPcok5g+7l5LC/ztcrp4cLmrIA1DHxxZSv/iqvsQ=
+github.com/vogtp/go-angular v0.0.0-20240709155651-b3c8f48d6254 h1:uMX9crWQQHMzNbZYYBl+mFLeOppulTWJaxYY1/OlgTc=
+github.com/vogtp/go-angular v0.0.0-20240709155651-b3c8f48d6254/go.mod h1:FpaD7x2m4LdSumAMOIMQqKwXYsKzIUirxo3ABVOZyFU=
 github.com/x-cray/logrus-prefixed-formatter v0.5.2 h1:00txxvfBM9muc0jiLIEAkAcIMJzfthRT6usrui8uGmg=
 github.com/x-cray/logrus-prefixed-formatter v0.5.2/go.mod h1:2duySbKsL6M18s5GU7VPsoEPHyzalCE06qoARUCeBBE=
 github.com/yargevad/filepathx v1.0.0 h1:SYcT+N3tYGi+NvazubCNlvgIPbzAk7i7y2dwg3I5FYc=

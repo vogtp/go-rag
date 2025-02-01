@@ -19,9 +19,7 @@
    {{ range .Documents }}
    <div class="searchHeader"> {{ .Title }} </div>
    <div> <a target="_blank" href="{{.URL}}">{{.URL}} </a> </div>
-   <small class="summary">
-   {{.Content}}
-   </small>
+   
    <hr />
    {{ end }}
    
