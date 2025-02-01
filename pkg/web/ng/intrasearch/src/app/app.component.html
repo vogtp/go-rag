@@ -1,15 +1,21 @@
-
-<main class="main">
-  <div class="content">
-    <nav>
-      <ul>
-        <li><a routerLink="/" routerLinkActive="active" ariaCurrentWhenActive="page">collections</a></li>
-        <li><a routerLink="/search" routerLinkActive="active" ariaCurrentWhenActive="page">Search</a>
-        </li>
-      </ul>
-    </nav>
-    
+<mat-toolbar>
+  <button mat-icon-button class="toolbar-icon" aria-label="icon-button with menu icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <a routerLink="/" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
+    Collections
+  </a>
+  <a routerLink="/search" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
+    Search
+  </a>
+  <span class="toolbar-spacer"></span>
+<button mat-icon-button class="toolbar-icon" aria-label="icon-button with menu icon">
+  <mat-icon>settings</mat-icon>
+</button>
+</mat-toolbar>
+<main class="main">   
     <!-- The routed views render in the <router-outlet>-->
     <router-outlet></router-outlet> 
-  </div>
+    
+    <footer><p>Version:</p></footer>
 </main>

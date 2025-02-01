@@ -41,6 +41,14 @@ main {
     position: relative;
 }
 
+footer {
+    height: 80px;
+    width: 100%;
+    padding: 5pt;
+    position: absolute;
+    bottom: 0;
+}
+
 .content {
     display: flex;
     justify-content: space-around;
@@ -55,4 +63,11 @@ main {
 
 .content p {
     margin-top: 1.5rem;
+}
+
+.toolbar-link {
+    margin-left: 1.75rem;
+}
+.toolbar-spacer {
+    flex: 1 1 auto;
 }
