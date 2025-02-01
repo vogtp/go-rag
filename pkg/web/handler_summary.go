@@ -21,7 +21,7 @@ const (
 	<doc>
 	%s
 	</doc>
-	Do not use more than 20 words.
+	Do not use more than 20 words no matter how big the document is.
 	`
 )
 
@@ -40,8 +40,9 @@ func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 		srv.Error(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	llm, err := getOllamaClient(ctx, viper.GetString(cfg.ModelDefault))
+	model:=viper.GetString(cfg.ModelDefault)
+	//model="deepseek-r1"
+	llm, err := getOllamaClient(ctx, model)
 	if err != nil {
 		slog.Warn("Cannot connect to ollama", "err", err)
 		srv.Error(w, r, fmt.Sprintf("Cannot connect to ollama: %v", err), http.StatusInternalServerError)

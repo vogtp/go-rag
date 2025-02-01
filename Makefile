@@ -48,11 +48,15 @@ remote-restart:	remote-stop-rag remote-start-rag
 remote-copy: 
 	scp ./build/ragctl $(user)@$(host):srv/rag/
 
+.PHONY: deploy-config
+deploy-config: 
+	scp ./ragctl.yml $(user)@$(host):srv/rag/
+
 .PHONY: deploy
 deploy: build remote-stop-rag remote-copy remote-start-rag remote-autocomplete
 
 .PHONY: remote-autocomplete
 remote-autocomplete:
-	ssh $(user)@$(host) "srv/rag/rag completion bash > ~/.rag.autocomplete"
+	ssh $(user)@$(host) "srv/rag/ragctl completion bash > ~/.rag.autocomplete"
 	ssh $(user)@$(host) "chmod +x ~/.rag.autocomplete"
 	
