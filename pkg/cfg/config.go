@@ -70,12 +70,18 @@ func processConfigFile() {
 					return
 				}
 				// should we write it regular and overwrite?
-				slog.Info("Writing config")
-				if err := viper.WriteConfigAs(viper.GetString(CfgFile)); err != nil {
+
+				if err := Save(); err != nil {
 					slog.Warn("Could not write config", "error", err)
 				}
 				time.Sleep(time.Hour)
 			}
 		}()
 	}
+}
+
+// Save the config to file
+func Save() error {
+	slog.Info("Writing config")
+	return viper.WriteConfigAs(viper.GetString(CfgFile))
 }
