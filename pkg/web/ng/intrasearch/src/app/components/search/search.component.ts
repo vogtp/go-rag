@@ -28,7 +28,7 @@ import { MatInputModule } from '@angular/material/input';
   styleUrl: './search.component.css',
 })
 export class SearchComponent {
-  @Input() collection: string = 'no collection';
+  @Input() collection: string = 'intranet-all';
   @Input()
   set query(q: string) {
     this.searchQuery.setValue(q);
@@ -52,7 +52,7 @@ export class SearchComponent {
       },
       queryParamsHandling: 'merge',
       // preserve the existing query params in the route
-      skipLocationChange: true,
+      skipLocationChange: false,
       // do not trigger navigation
     });
     this.searchService

@@ -1,15 +1,15 @@
 <div class="container">
   <header>
     <mat-toolbar>
-      <!-- <button mat-icon-button class="toolbar-icon" aria-label="icon-button with menu icon">
-        <mat-icon>menu</mat-icon>
-      </button> -->
-      <a routerLink="/list" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
+     <app-space-list-button />
+     <span class="toolbar-spacer"></span>
+      <span>Intranet Search</span>
+      <!-- <a routerLink="/list" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
        <button>Intranet Spaces</button> 
-      </a>
-      <a routerLink="/query" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
+      </a> -->
+      <!-- <a routerLink="/query" routerLinkActive="active" class="toolbar-link" ariaCurrentWhenActive="page">
         <button>Search</button>
-      </a>
+      </a> -->
       <span class="toolbar-spacer"></span>
       <button mat-icon-button class="toolbar-icon" aria-label="icon-button with menu icon">
         <mat-icon>settings</mat-icon>
@@ -22,6 +22,10 @@
   </main>
 
   <footer>
-    <p>Search the intranet</p>
+    <p>
+      <small>
+        Please give feedback to <a href="mailto:patrick.vogt@unibas.ch">Patrick Vogt</a>
+      </small>
+    </p>
   </footer>
 </div>
