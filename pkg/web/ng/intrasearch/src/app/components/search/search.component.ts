@@ -14,7 +14,7 @@ import { CollectionSearchResponse, CollectionSearchService } from '../../service
 })
 export class SearchComponent {
 
-  collectionName: string = "no collection"
+  @Input()collection: string = "no collection"
   searchQuery = new FormControl("")
   searchResult: CollectionSearchResponse | undefined
 
@@ -24,16 +24,12 @@ export class SearchComponent {
     private searchService: CollectionSearchService
   ) { }
   
-  @Input()
-  set collection(collection: string) {
-    this.collectionName = collection
-  }
 
 
   search() {
     let query = this.searchQuery.value!
     console.log("Query: " + query);
-    this.searchService.searchCollection(this.collectionName,query).subscribe(data => {
+    this.searchService.searchCollection(this.collection,query).subscribe(data => {
       console.log(data);
       
       this.searchResult = data
