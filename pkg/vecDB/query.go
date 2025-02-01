@@ -18,7 +18,7 @@ type QueryDocument struct {
 }
 
 func (v *VecDB) Query(ctx context.Context, collection string, queryTexts []string, nResults int32) ([]QueryResult, error) {
-	v.slog.Info("Query vecDB", "collection", collection, "queryTexts", queryTexts, "embeddingsModel", v.embeddingsModel)
+	v.slog.Info("Query vecDB", "collection", collection, "queryTexts", queryTexts, "embeddingsModel", v.embeddingsModel, "nResults", nResults)
 	col, err := v.GetCollection(ctx, collection)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get collection %s: %w", collection, err)
