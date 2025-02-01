@@ -32,6 +32,11 @@ export class SearchComponent {
   @Input()
   set query(q: string) {
     this.searchQuery.setValue(q);
+    if (q) {
+      console.log('Searching for ' + q);
+
+      this.search();
+    }
   }
   searchQuery = new FormControl('');
   searchResult: CollectionSearchResponse | undefined;
@@ -40,7 +45,12 @@ export class SearchComponent {
     private route: ActivatedRoute,
     private router: Router,
     private searchService: CollectionSearchService
-  ) {}
+  ) {
+    route.params.subscribe((val) => {
+      this.collection = this.route.snapshot.params['collection'];
+      this.search()
+    });
+  }
 
   search() {
     let query = this.searchQuery.value!;
