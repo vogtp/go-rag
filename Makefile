@@ -13,6 +13,10 @@ BRANCH=$(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
 host=its-a-hack.its.unibas.ch
 user=vogtp
 
+.PHONY: run
+run: ng-build
+	go run . --log.source web start
+
 .PHONY: build
 build: ng-build
 	$(GO_CMD) build $(build_date) -tags prod -o ./build/ . 
