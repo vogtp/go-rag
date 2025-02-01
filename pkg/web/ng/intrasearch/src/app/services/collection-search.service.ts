@@ -4,45 +4,52 @@ import { Observable, catchError, throwError } from 'rxjs';
 import { collectionURL, httpHeaders } from './common';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CollectionSearchService {
-
-
-  searchCollection(collection: string, query: string): Observable<CollectionSearchResponse> {
-    let url = collectionURL+collection+"?query="+query
-    console.log("Rest to "+url);
-    return this.http.get<CollectionSearchResponse>(url, { headers: httpHeaders }).pipe(
-      catchError(this.handleError)
-    );
+  searchCollection(
+    collection: string,
+    query: string
+  ): Observable<CollectionSearchResponse> {
+    let url = collectionURL + collection + '?query=' + query;
+    console.log('Rest to ' + url);
+    return this.http
+      .get<CollectionSearchResponse>(url, { headers: httpHeaders })
+      .pipe(catchError(this.handleError));
+  }
+  summary(uuid: string): Observable<Document> {
+    let url = '/summary/' + uuid;
+    console.log('Rest to ' + url);
+    return this.http
+      .get<Document>(url, { headers: httpHeaders })
+      .pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
-      console.log(error.error.message)
-
+      console.log(error.error.message);
     } else {
-      console.log(error.status)
+      console.log(error.status);
     }
-    return throwError(
-      console.log('Something is wrong!'));
-  };
-  constructor(private http: HttpClient) { }
+    return throwError(console.log('Something is wrong!'));
+  }
+  constructor(private http: HttpClient) {}
 }
 
 export interface CollectionSearchResponse {
-  Title: string
-  Collection: string
-  Query: string
-  Documents: Document[]
+  Title: string;
+  Collection: string;
+  Query: string;
+  Documents: Document[];
 }
 
 export interface Document {
-  Content: string
-  Summary: string
-  Modified: string
-  URL: string
-  Title: string
+  UUID: string;
+  Content: string;
+  Summary: string;
+  Modified: string;
+  URL: string;
+  Title: string;
 }
 
 /*

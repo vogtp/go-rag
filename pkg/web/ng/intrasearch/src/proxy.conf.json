@@ -2,5 +2,9 @@
    "/search": {
      "target": "http://localhost:4444",
      "secure": false
+   },
+   "/summary": {
+     "target": "http://localhost:4444",
+     "secure": false
    }
  }

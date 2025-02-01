@@ -26,6 +26,7 @@ type Server struct {
 
 	rag        *rag.Manager
 	lastEmbedd map[string]time.Time
+	docChace   docChace
 }
 
 // New creates a new webserver
@@ -34,6 +35,7 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 		slog:       slog,
 		rag:        rag,
 		lastEmbedd: make(map[string]time.Time),
+		docChace:   newDocCache(),
 	}
 	a.httpSrv = &http.Server{
 		ReadTimeout: 10 * time.Second,
@@ -66,6 +68,7 @@ func (srv *Server) Run(ctx context.Context) error {
 	srv.openAiAPI("/api")
 	srv.mux.HandleFunc("/search/", srv.vecDBlist)
 	srv.mux.HandleFunc("/search/{collection}", srv.vecDBsearch)
+	srv.mux.HandleFunc("/summary/{uuid}", srv.handleSummary)
 	// srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	// 	http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
 	// })

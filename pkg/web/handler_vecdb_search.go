@@ -9,11 +9,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/spf13/viper"
-	"github.com/tmc/langchaingo/llms"
+	"github.com/google/uuid"
 	"github.com/vogtp/rag/pkg/cfg"
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
+
+type queryDoc struct {
+	*vecdb.QueryDocument
+	UUID uuid.UUID
+}
 
 func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
@@ -24,30 +28,20 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 	}
 	query := r.FormValue("query")
 	maxResStr := r.FormValue("maxResults")
-	summariseStr := r.FormValue("summary")
-	slog := srv.slog.With("collection", collection, "query", query, "maxResults", maxResStr, "summary", summariseStr)
+	slog := srv.slog.With("collection", collection, "query", query, "maxResults", maxResStr)
 	maxResults, err := strconv.Atoi(maxResStr)
 	if err != nil {
 		slog.Warn("Cannot convert max Results to int", "err", err)
 		maxResults = 10
 	}
 
-	summarise, err := strconv.ParseBool(summariseStr)
-	if err != nil {
-		slog.Debug("Cannot parse summery as bool", "err", err)
-		summarise = false
-	}
-	// if summarise && maxResults > 5 {
-	// 	slog.Info("summary does not support too many results")
-	// 	maxResults = 5
-	// }
-	slog = srv.slog.With("collection", collection, "query", query, "maxResults", maxResults, "summary", summarise)
+	slog = srv.slog.With("collection", collection, "query", query, "maxResults", maxResults)
 	slog.Info("Collection search requested")
 	var data = struct {
 		*commonData
 		Collection string
 		Query      string
-		Documents  []vecdb.QueryDocument
+		Documents  []queryDoc
 	}{
 		commonData: srv.common(fmt.Sprintf("Search: %s", collection), r),
 		Collection: collection,
@@ -68,26 +62,16 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 			return a.URL == b.URL
 		}
 		docs = slices.CompactFunc(docs, cmpFunc)
-		if summarise {
-			llm, err := getOllamaClient(ctx, viper.GetString(cfg.ModelDefault))
-			if err == nil {
-				for i, d := range docs {
-					content := []llms.MessageContent{
-						llms.TextParts(llms.ChatMessageTypeSystem, "You are a technical analyst who provides short high level summary of the input text.\nDo not use more than 50 words.\nJust provide the short summary with no addional comment."),
-						llms.TextParts(llms.ChatMessageTypeHuman, d.Content),
-					}
-					completion, err := llm.GenerateContent(ctx, content, llms.WithTemperature(0.001))
-					if err != nil {
-						slog.Warn("Cannot gernerate ollama content", "err", err)
-					}
-					docs[i].Content = completion.Choices[0].Content
-				}
-			} else {
-				slog.Warn("Cannot connect to ollama", "err", err)
 
+		data.Documents = make([]queryDoc, len(docs))
+		for i, d := range docs {
+			qd := queryDoc{
+				QueryDocument: &d,
+				UUID:          uuid.New(),
 			}
-		} 
-		data.Documents = docs
+			data.Documents[i] = qd
+			srv.docChace.add(&qd)
+		}
 	}
 	data.StatusMessage = fmt.Sprintf("Duration %v - %v", time.Since(start).Truncate(time.Second), data.StatusMessage)
 	srv.render(w, r, "vecdb_search.gohtml", data)

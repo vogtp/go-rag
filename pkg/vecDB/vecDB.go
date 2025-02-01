@@ -44,7 +44,7 @@ func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error)
 
 	client, err := chroma.NewClient(v.chromaAddr)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create chroma client: %w", err)
+		return nil, fmt.Errorf("failed to create chroma client: %w", err)
 	}
 	v.slog.Debug("Connected to chroma")
 	v.chroma = client
@@ -76,7 +76,7 @@ func (v *VecDB) GetEmbeddingFunc() (*ollamaEmbedd.OllamaEmbeddingFunction, error
 		ollamaEmbedd.WithModel(v.embeddingsModel),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating ollama embedding function: %s \n", err)
+		return nil, fmt.Errorf("error creating ollama embedding function: %w", err)
 	}
 	v.embedFunc = embedFunc
 	return embedFunc, nil

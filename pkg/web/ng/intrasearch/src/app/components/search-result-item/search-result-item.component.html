@@ -2,10 +2,12 @@
     <div class="title">{{ doc?.Title}}</div>
 <a href="{{ doc?.URL }}">{{ doc?.URL }}</a>
 </div>
+<small>Modified: {{doc?.Modified | slice:0:16}}</small>
 
 <p>{{ doc?.Summary }}</p>
 
-
-<p class="content">
+<!-- 
+<p class="content" >
     {{ doc?.Content  }}
 </p>
+ -->
