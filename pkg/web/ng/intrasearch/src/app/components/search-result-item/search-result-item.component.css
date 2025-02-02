@@ -9,3 +9,27 @@
 .title {
     font-weight: bold;
 }
+
+.card-footer {
+    padding: 7px;
+    padding-left: 15px;
+}
+
+.content {
+    border-radius: 13px;
+    border: 1px solid rgba(128, 128, 128, 0.4);
+    padding: 10px;
+}
+
+pre {
+    white-space: pre-wrap;
+    /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;
+    /* Mozilla, since 1999 */
+    white-space: -pre-wrap;
+    /* Opera 4-6 */
+    white-space: -o-pre-wrap;
+    /* Opera 7 */
+    word-wrap: break-word;
+    /* Internet Explorer 5.5+ */
+}
