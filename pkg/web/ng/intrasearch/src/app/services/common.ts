@@ -1,9 +1,8 @@
-import { HttpHeaders } from "@angular/common/http";
+import { HttpHeaders } from '@angular/common/http';
 
-export const collectionURL = '/search/';
-
+export const collectionURL = '/vecdb/';
 
 export const httpHeaders: HttpHeaders = new HttpHeaders({
   //Authorization: 'Bearer JWT-token'
-  Accept: "application/json"
-})
+  Accept: 'application/json',
+});

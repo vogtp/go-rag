@@ -66,8 +66,8 @@ func (srv *Server) Run(ctx context.Context) error {
 	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
 
 	srv.openAiAPI("/api")
-	srv.mux.HandleFunc("/search/", srv.vecDBlist)
-	srv.mux.HandleFunc("/search/{collection}", srv.vecDBsearch)
+	srv.mux.HandleFunc("/vecdb/", srv.vecDBlist)
+	srv.mux.HandleFunc("/vecdb/{collection}", srv.vecDBsearch)
 	srv.mux.HandleFunc("/summary/{uuid}", srv.handleSummary)
 	// srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	// 	http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)

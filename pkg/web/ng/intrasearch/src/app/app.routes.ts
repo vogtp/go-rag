@@ -3,7 +3,7 @@ import { CollectionsListComponent } from './components/collections-list/collecti
 import { SearchComponent } from './components/search/search.component';
 
 export const routes: Routes = [
-  { path: 'list', component: CollectionsListComponent },
-  { path: 'query/:collection', component: SearchComponent },
-  { path: '',   redirectTo: '/list', pathMatch: 'full' },
+  { path: 'search', component: CollectionsListComponent },
+  { path: 'search/:collection', component: SearchComponent },
+  { path: '', redirectTo: '/search', pathMatch: 'full' },
 ];
