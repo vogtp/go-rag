@@ -8,29 +8,26 @@ import (
 )
 
 type docChace struct {
-	mu sync.Mutex
-	cache map[uuid.UUID]queryDoc
+	mu    sync.RWMutex
+	cache sync.Map
 }
 
 func newDocCache() docChace {
-	return docChace{
-		cache: make(map[uuid.UUID]queryDoc),
-	}
+	return docChace{}
 }
 
 func (dc *docChace) add(d *queryDoc) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	dc.cache[d.UUID] = *d
+	dc.cache.Store(d.UUID, *d)
 }
 
 func (dc *docChace) get(id uuid.UUID) (*queryDoc, error) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	d, ok := dc.cache[id]
+	d, ok := dc.cache.LoadAndDelete(id)
 	if !ok {
 		return nil, fmt.Errorf("cannot find document for %v", id)
 	}
-	delete(dc.cache, id)
-	return &d, nil
+	doc,ok:=d.(queryDoc)
+	if !ok {
+		return nil, fmt.Errorf("document %v is not correct type", id)
+	}
+	return &doc, nil
 }
