@@ -14,7 +14,6 @@ import { SettingsButtonComponent } from "./components/settings-button/settings-b
     CommonModule,
     RouterOutlet,
     MatToolbarModule,
-    MatIcon,
     MatMenuModule,
     MatButtonModule,
     SpaceListButtonComponent,

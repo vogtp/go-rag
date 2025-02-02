@@ -12,14 +12,12 @@ export class CollectionSearchService {
     query: string
   ): Observable<CollectionSearchResponse> {
     let url = collectionURL + collection + '?query=' + query;
-    console.log('Rest to ' + url);
     return this.http
       .get<CollectionSearchResponse>(url, { headers: httpHeaders })
       .pipe(catchError(this.handleError));
   }
   summary(uuid: string): Observable<Document> {
     let url = '/summary/' + uuid;
-    console.log('Rest to ' + url);
     return this.http
       .get<Document>(url, { headers: httpHeaders })
       .pipe(catchError(this.handleError));

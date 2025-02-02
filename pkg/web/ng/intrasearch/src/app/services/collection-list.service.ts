@@ -7,7 +7,6 @@ import { collectionURL, httpHeaders } from './common';
 export class CollectionListService {
 
   getCollections(): Observable<CollectionListResponse> {
-    console.log("Rest to "+collectionURL);
     return this.http.get<CollectionListResponse>(collectionURL, { headers: httpHeaders }).pipe(
       catchError(this.handleError)
     );
