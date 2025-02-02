@@ -15,7 +15,7 @@ import (
 	"github.com/vogtp/rag/pkg/rag"
 )
 
-func (srv Server) completionHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) completionHandler(w http.ResponseWriter, r *http.Request) {
 	var req openai.CompletionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

@@ -11,7 +11,7 @@ import (
 	"github.com/vogtp/rag/pkg/vecDB/confluence"
 )
 
-func (srv Server) schedulePeriodicVecDBUpdates(ctx context.Context) error {
+func (srv *Server) schedulePeriodicVecDBUpdates(ctx context.Context) error {
 	updateIntervall := viper.GetDuration(cfg.VecDBUpdateIntervall)
 	if updateIntervall < time.Hour {
 		slog.Warn("Not starting periodic vector DB updates since update intervall is too short", "updateIntervall", updateIntervall)

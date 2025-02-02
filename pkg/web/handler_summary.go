@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -22,7 +23,7 @@ const (
 	summaryMsg = `%s`
 )
 
-func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	uuidStr := r.PathValue("uuid")
 	id, err := uuid.Parse(uuidStr)
@@ -31,7 +32,7 @@ func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 		srv.Error(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
-	doc, err := srv.docChace.get(id)
+	doc, err := srv.docCache.get(id)
 	if err != nil {
 		slog.Warn("Cannot get doc for UUID", "uuid", uuidStr, "err", err)
 		srv.Error(w, r, err.Error(), http.StatusBadRequest)
@@ -55,12 +56,27 @@ func (srv Server) handleSummary(w http.ResponseWriter, r *http.Request) {
 		srv.Error(w, r, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	summary := completion.Choices[0].Content
+	summary = clipDeepSeekThinking(model, summary)
 	resp := struct {
 		*queryDoc
 		Summary string
 	}{
 		queryDoc: doc,
-		Summary:  completion.Choices[0].Content,
+		Summary:  summary,
 	}
 	srv.render(w, r, "summary.gohtml", resp)
+}
+
+func clipDeepSeekThinking(model, summary string) string {
+	if !strings.HasPrefix(model, "deepseek") {
+		return summary
+	}
+	thinkEnd := "</think>"
+	idx := strings.Index(summary, thinkEnd)
+	if idx > 0 && len(summary) > idx+len(thinkEnd) {
+		slog.Info("cliping summary","clipped",summary[idx+len(thinkEnd):])
+		summary = summary[idx+len(thinkEnd):]
+	}
+	return summary
 }

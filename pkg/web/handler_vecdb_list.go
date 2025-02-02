@@ -12,7 +12,7 @@ import (
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
 
-func (srv Server) vecDBlist(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) vecDBlist(w http.ResponseWriter, r *http.Request) {
 	slog := slog.With("url", r.URL)
 	slog.Info("Collection list requested")
 	var data = struct {

@@ -19,7 +19,7 @@ type queryDoc struct {
 	UUID uuid.UUID
 }
 
-func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	collection := r.PathValue("collection")
 	if err := r.ParseForm(); err != nil {
@@ -31,7 +31,7 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 	slog := srv.slog.With("collection", collection, "query", query, "maxResults", maxResStr)
 	maxResults, err := strconv.Atoi(maxResStr)
 	if err != nil {
-		slog.Warn("Cannot convert max Results to int", "err", err)
+		slog.Info("Cannot convert max Results to int", "err", err)
 		maxResults = 10
 	}
 
@@ -70,7 +70,7 @@ func (srv Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 				UUID:          uuid.New(),
 			}
 			data.Documents[i] = qd
-			srv.docChace.add(&qd)
+			srv.docCache.add(&qd)
 		}
 	}
 	data.StatusMessage = fmt.Sprintf("Duration %v - %v", time.Since(start).Truncate(time.Second), data.StatusMessage)

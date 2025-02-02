@@ -9,7 +9,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func (srv Server) modelsHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) modelsHandler(w http.ResponseWriter, r *http.Request) {
 	var ret any
 	if name := r.PathValue("model"); len(name) > 0 {
 		rm, err := srv.rag.Model(name)

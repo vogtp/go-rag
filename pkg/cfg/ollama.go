@@ -15,7 +15,7 @@ var _ollamaHost string
 // GetOllamaHost returns a active ollama host
 func GetOllamaHost(ctx context.Context) string {
 	if checkOllama(ctx, _ollamaHost) {
-		slog.Info("Using prevously found ollala host", "url", _ollamaHost)
+		slog.Debug("Using prevously found ollala host", "url", _ollamaHost)
 		return _ollamaHost
 	}
 	for _, o := range viper.GetStringSlice(ollamaHosts) {

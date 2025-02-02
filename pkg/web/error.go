@@ -7,7 +7,7 @@ import (
 )
 
 // Error is a wrapper for srv.Error
-func (srv Server) Error(w http.ResponseWriter, r *http.Request, errStr string, code int) {
+func (srv *Server) Error(w http.ResponseWriter, r *http.Request, errStr string, code int) {
 	data := struct {
 		*commonData
 		Error     string

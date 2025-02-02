@@ -18,7 +18,7 @@ import (
 
 func getOllamaClient(ctx context.Context, model string) (*ollama.LLM, error) {
 	url := cfg.GetOllamaHost(ctx)
-	slog.Info("connecting to ollama", "model", model, "url", url)
+	slog.Debug("connecting to ollama", "model", model, "url", url)
 	return ollama.New(
 		ollama.WithModel(model),
 		ollama.WithServerURL(url),

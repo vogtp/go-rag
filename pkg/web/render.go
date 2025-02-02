@@ -17,7 +17,7 @@ type commonData struct {
 	Query         string
 }
 
-func (srv Server) common(t string, r *http.Request) *commonData {
+func (srv *Server) common(t string, r *http.Request) *commonData {
 	if err := r.ParseForm(); err != nil {
 		srv.slog.Warn("Cannot parse form", "err", err)
 	}

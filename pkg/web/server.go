@@ -26,7 +26,7 @@ type Server struct {
 
 	rag        *rag.Manager
 	lastEmbedd map[string]time.Time
-	docChace   docChace
+	docCache   docChace
 }
 
 // New creates a new webserver
@@ -35,7 +35,7 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 		slog:       slog,
 		rag:        rag,
 		lastEmbedd: make(map[string]time.Time),
-		docChace:   newDocCache(),
+		docCache:   newDocCache(),
 	}
 	a.httpSrv = &http.Server{
 		ReadTimeout:       10 * time.Second,
@@ -102,7 +102,7 @@ func (srv *Server) closeOnCtxDone(ctx context.Context) {
 	}
 }
 
-func (Server) setStreamHeaders(w http.ResponseWriter) {
+func (*Server) setStreamHeaders(w http.ResponseWriter) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Content-Type", "text/event-stream")
 	w.Header().Add("Cache-Control", "no-cache")
