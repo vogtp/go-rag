@@ -1,6 +1,5 @@
 mat-list-item {
     width: 100%;
-    background-color: grey;
 }
 
 mat-list {
@@ -10,4 +9,15 @@ mat-list {
 button {
     width: 100%;
     text-align: left;
+}
+
+.space_list .space_listitem {
+    background: #eee;
+    border: 1px solid transparent;
+    border-radius: 7px;
+}
+
+.space_list .space_listitem:hover {
+    background: #e1e1e1;
+    border: 1px solid #d0d0d0;
 }
