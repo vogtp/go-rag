@@ -2,15 +2,14 @@ package web
 
 import (
 	"context"
-	"fmt"
-	"io/fs"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"github.com/spf13/viper"
-	"github.com/vogtp/go-angular"
 	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/rag"
 )
@@ -22,7 +21,7 @@ type Server struct {
 	baseURL string
 
 	httpSrv *http.Server
-	mux     *http.ServeMux
+	chi     *chi.Mux
 
 	rag        *rag.Manager
 	lastEmbedd map[string]time.Time
@@ -31,66 +30,70 @@ type Server struct {
 
 // New creates a new webserver
 func New(slog *slog.Logger, rag *rag.Manager) *Server {
-	a := &Server{
+	srv := &Server{
 		slog:       slog,
 		rag:        rag,
 		lastEmbedd: make(map[string]time.Time),
 		docCache:   newDocCache(),
 	}
-	a.httpSrv = &http.Server{
+	srv.httpSrv = &http.Server{
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       30 * time.Second,
 		ReadHeaderTimeout: 1 * time.Second,
 		MaxHeaderBytes:    1 << 20,
 	}
-
-	return a
-}
-
-// Run starts the webserver in foreground
-func (srv *Server) Run(ctx context.Context) error {
 	addr := viper.GetString(cfg.WebListen)
 	srv.slog = srv.slog.With("listem_addr", addr)
 	srv.httpSrv.Addr = addr
-	srv.mux = http.NewServeMux()
+	srv.chi = chi.NewRouter()
+
+	return srv
+}
+
+// OIDC Client
+// https://github.com/zitadel/oidc
+
+// Run starts the webserver in foreground
+func (srv *Server) Run(ctx context.Context) error {
+
 	if err := srv.schedulePeriodicVecDBUpdates(ctx); err != nil {
 		slog.Error("Cannot start periodic embedding", "err", err)
 	}
-	fsys, err := fs.Sub(assetData, "ng/intrasearch/dist/intrasearch/browser")
-	if err != nil {
-		panic(err)
-	}
-	ngFS := angular.FileSystem(fsys)
-	srv.mux.Handle("/", http.FileServer(ngFS))
-	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
 
-	srv.openAiAPI("/api")
-	srv.mux.HandleFunc("/vecdb/", srv.vecDBlist)
-	srv.mux.HandleFunc("/vecdb/{collection}", srv.vecDBsearch)
-	srv.mux.HandleFunc("/summary/{uuid}", srv.handleSummary)
-	// srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
-	// })
+	logger := httplog.NewLogger("httplog-example", httplog.Options{
+		LogLevel: slog.LevelDebug,
+		// JSON:             true,
+		Concise: true,
+		// RequestHeaders:   true,
+		// ResponseHeaders:  true,
+		MessageFieldName: "message",
+		LevelFieldName:   "severity",
+		TimeFieldFormat:  time.RFC3339,
+		Tags: map[string]string{
+			"version": "v1.0-81aa4244d9fc8076a",
+			"env":     "dev",
+		},
+		QuietDownRoutes: []string{
+			"/ping",
+		},
+		QuietDownPeriod: 10 * time.Second,
+		// SourceFieldName: "source",
+	})
+	logger.Logger = srv.slog
+	srv.chi.Use(httplog.RequestLogger(logger))
+	srv.chi.Use(middleware.CleanPath)
+	srv.chi.Use(middleware.RequestID)
+	srv.chi.Use(middleware.RealIP)
+	//srv.chi.Use(middleware.RequestLogger(&middleware.DefaultLogFormatter{}))
+	srv.chi.Use(middleware.Recoverer)
+
+	srv.routes()
 
 	srv.slog.Warn("Listen for incoming requests")
-	srv.httpSrv.Handler = srv.mux
+	srv.httpSrv.Handler = srv.chi
 	go srv.closeOnCtxDone(ctx)
 	return srv.httpSrv.ListenAndServe()
-}
-
-func (srv *Server) openAiAPI(apiBasePath string) {
-	if !strings.HasSuffix(apiBasePath, "/") {
-		apiBasePath = fmt.Sprintf("%s/", apiBasePath)
-	}
-	if !strings.HasPrefix(apiBasePath, "/") {
-		apiBasePath = fmt.Sprintf("/%s", apiBasePath)
-	}
-	srv.slog.Info("Registering openAI API", "basePath", apiBasePath)
-	srv.mux.HandleFunc(fmt.Sprintf("POST %scompletions", apiBasePath), srv.completionHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("POST %schat/completions", apiBasePath), srv.chatCompletionHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels", apiBasePath), srv.modelsHandler)
-	srv.mux.HandleFunc(fmt.Sprintf("GET %smodels/{model}", apiBasePath), srv.modelsHandler)
 }
 
 func (srv *Server) closeOnCtxDone(ctx context.Context) {
