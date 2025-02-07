@@ -13,24 +13,15 @@ export class CollectionSearchService {
   ): Observable<CollectionSearchResponse> {
     let url = collectionURL + collection + '?query=' + query;
     return this.http
-      .get<CollectionSearchResponse>(url, { headers: httpHeaders })
-      .pipe(catchError(this.handleError));
+      .get<CollectionSearchResponse>(url, { headers: httpHeaders });
   }
   summary(uuid: string): Observable<Document> {
     let url = '/summary/' + uuid;
     return this.http
-      .get<Document>(url, { headers: httpHeaders })
-      .pipe(catchError(this.handleError));
+      .get<Document>(url, { headers: httpHeaders });
   }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.log(error.error.message);
-    } else {
-      console.log(error.status);
-    }
-    return throwError(console.log('Something is wrong!'));
-  }
+  
   constructor(private http: HttpClient) {}
 }
 

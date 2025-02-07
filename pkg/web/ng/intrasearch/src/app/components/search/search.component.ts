@@ -9,8 +9,10 @@ import {
 } from '../../services/collection-search.service';
 import { SearchResultItemComponent } from '../search-result-item/search-result-item.component';
 
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { Observable, catchError, throwError } from 'rxjs';
 
 @Component({
   selector: 'app-search',
@@ -40,6 +42,7 @@ export class SearchComponent {
   }
   searchQuery = new FormControl('');
   searchResult: CollectionSearchResponse | undefined;
+  message: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -48,7 +51,7 @@ export class SearchComponent {
   ) {
     route.params.subscribe((val) => {
       this.collection = this.route.snapshot.params['collection'];
-      this.search()
+      this.search();
     });
   }
 
@@ -67,8 +70,33 @@ export class SearchComponent {
     });
     this.searchService
       .searchCollection(this.collection, query)
+      .pipe(catchError(this.handleError))
       .subscribe((data) => {
         this.searchResult = data;
+        if (data && data.Documents) {
+          this.message = 'Results: ' + data.Documents?.length;
+        }
       });
+  }
+
+  private handleError(
+    error: any,
+    caught: Observable<CollectionSearchResponse>
+  ) {
+    let err = '';
+    if (error.error instanceof ErrorEvent) {
+      err = error.error.message;
+    } else if (error instanceof HttpErrorResponse) {
+      err = error.error.Error;
+    } else {
+      err = error.status;
+    }
+    console.log('err: ' + err);
+
+    console.log('message: ' + this.message);
+    this.message = err;
+    console.log('message: ' + this.message);
+
+    return throwError(() => new Error('test'));
   }
 }

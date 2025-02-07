@@ -3,14 +3,15 @@
         <p>
             <mat-form-field appearance="fill">
                 <mat-label>Search {{collection}}</mat-label>
-                <input matInput id="search" [formControl]="searchQuery" (keydown.enter)="search()" >
-                <mat-icon matSuffix (click)="search()" >search</mat-icon>
+                <input matInput id="search" [formControl]="searchQuery" (keydown.enter)="search()">
+                <mat-icon matSuffix (click)="search()">search</mat-icon>
             </mat-form-field>
+
+            <span>{{message}}</span>
         </p>
     </div>
 
-
-    <div class="results">
+    <div class=" results">
         <div *ngFor="let doc of searchResult?.Documents">
             <app-search-result-item [doc]="doc" />
             <hr />
