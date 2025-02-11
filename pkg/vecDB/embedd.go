@@ -12,6 +12,7 @@ const (
 	// MetaIDKey is the name of the key which identifies the unique value
 	MetaIDKey = "IDkey"
 
+	MetaOrigDoc = "document_original"
 	MetaPath    = "path"
 	MetaIsRag   = "RAG"
 	MetaCreated = "created"
@@ -69,47 +70,53 @@ func (v *VecDB) Embedd(ctx context.Context, collectionName string, in <-chan Emb
 			slog.Info("document allready exists and not updated")
 			return nil
 		}
+		for _, s := range d.Split(slog) {
+			rs, err := types.NewRecordSet(
+				types.WithEmbeddingFunction(embedFunc),
+				types.WithIDGenerator(types.NewULIDGenerator()),
+			)
+			if err != nil {
+				slog.Warn("cannot create record set", "err", err)
+				return fmt.Errorf("error creating record set: %w", err)
+			}
 
-		rs, err := types.NewRecordSet(
-			types.WithEmbeddingFunction(embedFunc),
-			types.WithIDGenerator(types.NewULIDGenerator()),
-		)
+			metadata := []types.Option{
+				types.WithDocument(s),
+				types.WithMetadata(MetaOrigDoc, d.Document),
+				types.WithMetadata(d.IDMetaKey, d.IDMetaValue),
+				types.WithMetadata(MetaIDKey, d.IDMetaKey),
+				types.WithMetadata(MetaUpdated, d.Modified.String()),
+			}
+			if len(d.URL) > 0 {
+				metadata = append(metadata, types.WithMetadata(MetaURL, d.URL))
+			}
+			if len(d.Title) > 0 {
+				metadata = append(metadata, types.WithMetadata(MetaTitle, d.Title))
+			}
+			for k, v := range d.MetaData {
+				metadata = append(metadata, types.WithMetadata(k, v))
+			}
+			rs.WithRecord(metadata...)
 
-		if err != nil {
-			slog.Warn("cannot create record set", "err", err)
-			return fmt.Errorf("error creating record set: %w", err)
-		}
-
-		metadata := []types.Option{types.WithDocument(d.Document), types.WithMetadata(d.IDMetaKey, d.IDMetaValue), types.WithMetadata(MetaIDKey, d.IDMetaKey), types.WithMetadata(MetaUpdated, d.Modified.String())}
-		if len(d.URL) > 0 {
-			metadata = append(metadata, types.WithMetadata(MetaURL, d.URL))
-		}
-		if len(d.Title) > 0 {
-			metadata = append(metadata, types.WithMetadata(MetaTitle, d.Title))
-		}
-		for k, v := range d.MetaData {
-			metadata = append(metadata, types.WithMetadata(k, v))
-		}
-		rs.WithRecord(metadata...)
-
-		_, err = rs.BuildAndValidate(ctx)
-		if err != nil {
-			slog.Debug("cannot validate document", "err", err, "rs", rs)
-			slog.Warn("document not validated", "err", err)
-			continue
-			//return fmt.Errorf("error validating record set: %s \n", err)
-		}
-		// Add the records to the collection
-		ids := rs.GetIDs()
-		if len(ids) == len(res.Ids) {
-			ids = res.Ids
-			slog.Debug("Using IDs from existing document")
-		}
-		slog.InfoContext(ctx, "Embedding document")
-		_, err = coll.Upsert(ctx, rs.GetEmbeddings(), rs.GetMetadatas(), rs.GetDocuments(), ids)
-		if err != nil {
-			slog.Warn("cannot add document", "err", err)
-			return fmt.Errorf("error adding documents: %w", err)
+			_, err = rs.BuildAndValidate(ctx)
+			if err != nil {
+				slog.Debug("cannot validate document", "err", err, "rs", rs)
+				slog.Warn("document not validated", "err", err)
+				continue
+				//return fmt.Errorf("error validating record set: %s \n", err)
+			}
+			// Add the records to the collection
+			ids := rs.GetIDs()
+			if len(ids) == len(res.Ids) {
+				ids = res.Ids
+				slog.Debug("Using IDs from existing document")
+			}
+			slog.InfoContext(ctx, "Embedding document")
+			_, err = coll.Upsert(ctx, rs.GetEmbeddings(), rs.GetMetadatas(), rs.GetDocuments(), ids)
+			if err != nil {
+				slog.Warn("cannot add document", "err", err)
+				return fmt.Errorf("error adding documents: %w", err)
+			}
 		}
 		docUpdated++
 	}

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/graze/go-throttled"
-	"github.com/k3a/html2text"
 	"github.com/spf13/viper"
 	conflu "github.com/virtomize/confluence-go-api"
 	"github.com/vogtp/rag/pkg/cfg"
@@ -88,8 +87,8 @@ func (c *confluence) query(ctx context.Context) {
 }
 
 func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
-	slog := c.slog.With("space", spaceKey)
-	slog.Info("starting to query space")
+	slogSpace := c.slog.With("space", spaceKey)
+	slogSpace.Info("starting to query space")
 	start := 0
 	total := 0
 	for {
@@ -113,16 +112,17 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 		//	fmt.Printf("%s\n ^%s (%v)\n%s (%v)\n", res.Results[0].Title, res.Results[0].Links.WebUI, len(res.Results[0].Body.Storage.Value), res.Results[res.Size-1].Title, len(res.Results[res.Size-1].Body.Storage.Value))
 
 		for _, d := range res.Results {
+			slog := slogSpace.With("title", d.Title, "doc_url", d.Links.WebUI)
 			if ctx.Err() != nil {
 				slog.Warn("confluence canceled by context", "err", ctx.Err())
 				return
 			}
 			slog.Debug("processing confluence document", "title", d.Title)
-			txt := html2text.HTML2Text(d.Body.View.Value)
+			//	txt := html2text.HTML2Text(d.Body.View.Value)
 			doc := vecdb.EmbeddDocument{
 				Title:       d.Title,
 				URL:         c.getURL(d.Links.WebUI),
-				Document:    txt,
+				Document:    parsePage(slog, d.Body.View.Value),
 				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: d.Links.WebUI,
 				MetaData:    make(map[string]any),
