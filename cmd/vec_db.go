@@ -97,7 +97,7 @@ var vecDbSearchCmd = &cobra.Command{
 }
 
 var vecDbRmCmd = &cobra.Command{
-	Use:   "rm  <collection>",
+	Use:   "rm <collection> [all]",
 	Short: "Delete collections.  Sepatate by space or use all to delete all",
 
 	Aliases: []string{"del", "remove", "delete"},
