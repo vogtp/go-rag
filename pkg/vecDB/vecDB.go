@@ -70,7 +70,7 @@ func (v *VecDB) GetEmbeddingFunc() (*ollamaEmbedd.OllamaEmbeddingFunction, error
 	if v.embedFunc != nil {
 		return v.embedFunc, nil
 	}
-	v.slog.Info("Loading embedding function", "embeddingsModel", v.embeddingsModel)
+	v.slog.Debug("Loading embedding function", "embeddingsModel", v.embeddingsModel)
 	embedFunc, err := ollamaEmbedd.NewOllamaEmbeddingFunction(
 		ollamaEmbedd.WithBaseURL(v.ollamaAddr),
 		ollamaEmbedd.WithModel(v.embeddingsModel),

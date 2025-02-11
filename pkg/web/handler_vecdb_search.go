@@ -58,10 +58,15 @@ func (srv *Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 			srv.Error(w, r, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		sizeOrig := len(docs)
 		cmpFunc := func(a, b vecdb.QueryDocument) bool {
 			return a.URL == b.URL
 		}
 		docs = slices.CompactFunc(docs, cmpFunc)
+
+		if sizeOrig > len(docs) {
+			slog.Warn("removed doubs", "orig", sizeOrig, "now", len(docs))
+		}
 
 		data.Documents = make([]queryDoc, len(docs))
 		for i, d := range docs {
