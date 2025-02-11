@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httplog/v2"
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/rag"
@@ -21,7 +18,7 @@ type Server struct {
 	baseURL string
 
 	httpSrv *http.Server
-	chi     *chi.Mux
+	mux     *http.ServeMux
 
 	rag        *rag.Manager
 	lastEmbedd map[string]time.Time
@@ -46,7 +43,7 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 	addr := viper.GetString(cfg.WebListen)
 	srv.slog = srv.slog.With("listem_addr", addr)
 	srv.httpSrv.Addr = addr
-	srv.chi = chi.NewRouter()
+	srv.mux = http.NewServeMux()
 
 	return srv
 }
@@ -61,37 +58,10 @@ func (srv *Server) Run(ctx context.Context) error {
 		slog.Error("Cannot start periodic embedding", "err", err)
 	}
 
-	logger := httplog.NewLogger("httplog-example", httplog.Options{
-		LogLevel: slog.LevelDebug,
-		// JSON:             true,
-		Concise: true,
-		// RequestHeaders:   true,
-		// ResponseHeaders:  true,
-		MessageFieldName: "message",
-		LevelFieldName:   "severity",
-		TimeFieldFormat:  time.RFC3339,
-		Tags: map[string]string{
-			"version": "v1.0-81aa4244d9fc8076a",
-			"env":     "dev",
-		},
-		QuietDownRoutes: []string{
-			"/ping",
-		},
-		QuietDownPeriod: 10 * time.Second,
-		// SourceFieldName: "source",
-	})
-	logger.Logger = srv.slog
-	srv.chi.Use(httplog.RequestLogger(logger))
-	srv.chi.Use(middleware.CleanPath)
-	srv.chi.Use(middleware.RequestID)
-	srv.chi.Use(middleware.RealIP)
-	//srv.chi.Use(middleware.RequestLogger(&middleware.DefaultLogFormatter{}))
-	srv.chi.Use(middleware.Recoverer)
-
 	srv.routes()
 
 	srv.slog.Warn("Listen for incoming requests")
-	srv.httpSrv.Handler = srv.chi
+	srv.httpSrv.Handler = srv.mux
 	go srv.closeOnCtxDone(ctx)
 	return srv.httpSrv.ListenAndServe()
 }
