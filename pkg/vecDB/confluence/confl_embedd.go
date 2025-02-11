@@ -49,7 +49,7 @@ func embbed(ctx context.Context, client *vecdb.VecDB, collectionName string, c c
 	if err != nil {
 		return fmt.Errorf("confluence embedding failed: %w", err)
 	}
-	slog.Info("Embebbing finished", "collection", collectionName, "wg", wg)
+	slog.Info("Embebbing finished", "collection", collectionName)
 	return nil
 }
 
