@@ -15,7 +15,7 @@ user=vogtp
 
 .PHONY: run
 run: ng-build
-	go run . --log.source web start
+	go run . --log.source web start --log.json | jq
 
 .PHONY: build
 build: ng-build
@@ -24,7 +24,7 @@ build: ng-build
 
 .PHONY: ng-build
 ng-build:
-	cd pkg/web/ng/intrasearch/dist/intrasearch/browser/ ; ng build
+	cd pkg/web/ng/intrasearch/dist/intrasearch/browser/ ; ng build --base-href=/ui/
 
 .PHONY: remote-stop
 remote-stop: remote-stop-rag
