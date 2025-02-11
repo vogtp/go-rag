@@ -33,7 +33,7 @@ var webStartCmd = &cobra.Command{
 		ctx := cmd.Context()
 		_, err := startChroma(ctx, slog)
 		if err != nil {
-			fmt.Errorf("chroma would not start: %w", err)
+			return fmt.Errorf("chroma would not start: %w", err)
 		}
 		
 		rag, err := rag.New(ctx, slog)
