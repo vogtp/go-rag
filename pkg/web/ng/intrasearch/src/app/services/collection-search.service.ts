@@ -35,6 +35,7 @@ export interface CollectionSearchResponse {
 export interface Document {
   UUID: string;
   Content: string;
+  Document: string;
   Summary: string;
   Modified: string;
   URL: string;

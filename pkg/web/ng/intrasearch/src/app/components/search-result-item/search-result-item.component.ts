@@ -39,14 +39,24 @@ export class SearchResultItemComponent {
   }
 
   showContent: boolean = false;
-  showContentButton = 'Show Page';
+  showPage: boolean = false;
+  showPageButton = 'Show Page';
+  showContentButton = 'Show Content';
 
   toggleShowContent() {
     this.showContent = !this.showContent;
     if (this.showContent) {
-      this.showContentButton = 'Hide page';
+      this.showContentButton = 'Hide Content';
     } else {
-      this.showContentButton = 'Show Page';
+      this.showContentButton = 'Show Content';
+    }
+  }
+  toggleShowPage() {
+    this.showPage = !this.showPage;
+    if (this.showPage) {
+      this.showPageButton = 'Hide Page';
+    } else {
+      this.showPageButton = 'Show Page';
     }
   }
 }

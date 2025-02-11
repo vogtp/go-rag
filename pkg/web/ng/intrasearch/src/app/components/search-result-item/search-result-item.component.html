@@ -11,13 +11,21 @@
     </mat-card-content>
     <mat-card-footer class="card-footer">
         <small>Modified: {{doc?.Modified | slice:0:16}}</small>
-        <small>
+        <small style="display: flex;">
+            <mat-card-actions>
+                <button mat-button (click)="toggleShowPage()" type="checkbox">{{showPageButton}}</button>
+            </mat-card-actions>
             <mat-card-actions>
                 <button mat-button (click)="toggleShowContent()" type="checkbox">{{showContentButton}}</button>
             </mat-card-actions>
+        </small>
+        <small>
+            <pre *ngIf="showPage" class="content mat-mdc-card" id="divshow">
+                    {{ doc?.Document }}
+            </pre>
             <pre *ngIf="showContent" class="content mat-mdc-card" id="divshow">
-                    {{ doc?.Content }}
-                        </pre>
+                                {{ doc?.Content }}
+            </pre>
         </small>
     </mat-card-footer>
 </mat-card>
