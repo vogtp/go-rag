@@ -12,6 +12,7 @@ import (
 	"github.com/vogtp/rag/pkg/cfg"
 )
 
+// VecDB is a wrapper of a vectoDB
 type VecDB struct {
 	slog            *slog.Logger
 	chromaAddr      string
@@ -21,6 +22,7 @@ type VecDB struct {
 	embeddingsModel string
 }
 
+// New creates a vectorDB
 func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error) {
 	v := &VecDB{
 		slog:       slog,
@@ -51,6 +53,7 @@ func New(ctx context.Context, slog *slog.Logger, opts ...Option) (*VecDB, error)
 	return v, nil
 }
 
+// CreateCollection create a collection
 func (v *VecDB) CreateCollection(ctx context.Context, name string, metadata map[string]interface{}) (*chroma.Collection, error) {
 	embedFunc, err := v.GetEmbeddingFunc()
 	if err != nil {
@@ -58,6 +61,8 @@ func (v *VecDB) CreateCollection(ctx context.Context, name string, metadata map[
 	}
 	return v.chroma.CreateCollection(ctx, name, nil, true, embedFunc, types.L2)
 }
+
+// GetCollection returns a collection
 func (v *VecDB) GetCollection(ctx context.Context, name string) (*chroma.Collection, error) {
 	embedFunc, err := v.GetEmbeddingFunc()
 	if err != nil {
@@ -66,6 +71,7 @@ func (v *VecDB) GetCollection(ctx context.Context, name string) (*chroma.Collect
 	return v.chroma.GetCollection(ctx, name, embedFunc)
 }
 
+// GetEmbeddingFunc load the embedding function from the llm
 func (v *VecDB) GetEmbeddingFunc() (*ollamaEmbedd.OllamaEmbeddingFunction, error) {
 	if v.embedFunc != nil {
 		return v.embedFunc, nil
@@ -82,6 +88,7 @@ func (v *VecDB) GetEmbeddingFunc() (*ollamaEmbedd.OllamaEmbeddingFunction, error
 	return embedFunc, nil
 }
 
+// DeleteCollection delete a collection
 func (v *VecDB) DeleteCollection(ctx context.Context, collectionName string) error {
 	_, err := v.chroma.DeleteCollection(ctx, collectionName)
 	if err != nil {
@@ -90,6 +97,7 @@ func (v *VecDB) DeleteCollection(ctx context.Context, collectionName string) err
 	return err
 }
 
+// ListCollections lists all colletions
 func (v *VecDB) ListCollections(ctx context.Context) ([]*chroma.Collection, error) {
 	return v.chroma.ListCollections(ctx)
 }
