@@ -1,4 +1,4 @@
-package experiments
+package cmd
 
 import (
 	"context"
@@ -11,17 +11,26 @@ import (
 	vecdb "github.com/vogtp/rag/pkg/vecDB"
 )
 
-var testScaperCmd = &cobra.Command{
-	Use:     "scraper",
-	Short:   "Test scraper",
-	Aliases: []string{"s"},
+var vecDbEmbbedScrapCmd = &cobra.Command{
+	Use:     "scrap collection_name https://example.net",
+	Short:   "scrap webpage",
+	Aliases: []string{"s", "scraper"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return scapper2vecDB(cmd.Context(), args)
+		collectionName := "anleitungen"
+		url := "https://its.unibas.ch/de/anleitungen/"
+		if len(args) > 0 {
+			collectionName = args[0]
+		}
+		if len(args) > 1 {
+			url = args[1]
+		}
+		fmt.Printf("Scrapping %s into %s\n", url, collectionName)
+		return scapper2vecDB(cmd.Context(), url, collectionName)
 	},
 }
 
-func scapper2vecDB(ctx context.Context, args []string) error {
-	scrap, err := scraper.New("https://its.unibas.ch/de/anleitungen/",
+func scapper2vecDB(ctx context.Context, url string, collectionName string) error {
+	scrap, err := scraper.New(url,
 		scraper.WithBlacklist([]string{
 			"ueber-uns", "about-us",
 			"aktuelles",
@@ -45,5 +54,5 @@ func scapper2vecDB(ctx context.Context, args []string) error {
 		return fmt.Errorf("Failed to create vector DB: %w", err)
 	}
 
-	return client.Embedd(ctx, "its-anleitung-scrap", docsChannel)
+	return client.Embedd(ctx, collectionName, docsChannel)
 }

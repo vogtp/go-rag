@@ -9,7 +9,6 @@ import (
 
 // Add s
 func Add(rootCmd *cobra.Command) {
-	testCmd.AddCommand(testScaperCmd)
 	testCmd.AddCommand(chromaCmd)
 	chromaCmd.AddCommand(chromaColCmd)
 	rootCmd.AddCommand(testCmd)
