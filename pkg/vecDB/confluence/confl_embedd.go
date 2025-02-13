@@ -30,7 +30,6 @@ func Embbed(ctx context.Context, slog *slog.Logger, collectionName string) error
 
 		go embbed(ctx, client, fmt.Sprintf("%s-%s", collectionName, "all"), o1)
 		go embbed(ctx, client, fmt.Sprintf("%s-%s", collectionName, strings.ToLower(space)), o2)
-
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
