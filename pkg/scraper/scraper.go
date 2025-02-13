@@ -21,17 +21,14 @@ const (
 	DefualtAsync     = true
 )
 
-var ErrScrapingFailed = errors.New("scraper could not read URL, or scraping is not allowed for provided URL")
-
 type Scraper struct {
+	baseURL   string
 	MaxDepth  int
 	Parallels int
 	Delay     int64
 	Blacklist []string
 	Async     bool
 }
-
-//var _ documentloaders.Loader = Scraper{}
 
 // New creates a new instance of Scraper with the provided options.
 //
@@ -41,8 +38,9 @@ type Scraper struct {
 //
 // The function returns a pointer to a Scraper instance and an error. The
 // error value is nil if the Scraper is created successfully.
-func New(options ...Options) (*Scraper, error) {
+func New(baseURL string, options ...Options) (*Scraper, error) {
 	scraper := &Scraper{
+		baseURL:   baseURL,
 		MaxDepth:  DefualtMaxDept,
 		Parallels: DefualtParallels,
 		Delay:     int64(DefualtDelay),
@@ -84,20 +82,15 @@ func (s Scraper) Description() string {
 	`
 }
 
-// Call scrapes a website and returns the site data.
+// Call scrapes a website in a goroutine and returns the site data.
 //
 // The function takes a context.Context object for managing the execution
-// context and a string input representing the URL of the website to be scraped.
-// It returns a string containing the scraped data and an error if any.
-//
-//nolint:all
-func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.EmbeddDocument) error {
-	defer close(docsOutput)
-	_, err := url.ParseRequestURI(input)
+// It returns a channel of documents.
+func (s Scraper) Call(ctx context.Context) (chan vecdb.EmbeddDocument, error) {
+	_, err := url.ParseRequestURI(s.baseURL)
 	if err != nil {
-		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		return nil, fmt.Errorf("cannot parse url %s: %w", s.baseURL, err)
 	}
-
 	c := colly.NewCollector(
 		colly.MaxDepth(s.MaxDepth),
 		colly.Async(s.Async),
@@ -111,8 +104,15 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 		Delay:       time.Duration(s.Delay) * time.Second,
 	})
 	if err != nil {
-		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		return nil, fmt.Errorf("colly limit: %w", err)
 	}
+	docsChannel := make(chan vecdb.EmbeddDocument, 10)
+	go s.call(ctx, c, docsChannel)
+	return docsChannel, nil
+}
+
+func (s Scraper) call(ctx context.Context, c *colly.Collector, docsOutput chan vecdb.EmbeddDocument) {
+	defer close(docsOutput)
 
 	var siteData stringBuilder
 	homePageLinks := make(map[string]bool)
@@ -153,7 +153,7 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 				IDMetaKey:   vecdb.MetaURL,
 				IDMetaValue: currentURL,
 				Title:       title,
-				Modified: time.Now(),
+				Modified:    time.Now(),
 				MetaData:    make(map[string]any),
 			}
 			if len(description) > 0 {
@@ -174,7 +174,7 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 			slog.Debug("Sending document to embedder")
 			docsOutput <- doc
 
-			if currentURL == input {
+			if currentURL == s.baseURL {
 				e.ForEach("a", func(_ int, el *colly.HTMLElement) {
 					link := el.Attr("href")
 					if link != "" && !homePageLinks[link] {
@@ -238,17 +238,17 @@ func (s Scraper) Call(ctx context.Context, input string, docsOutput chan vecdb.E
 		}
 	})
 
-	err = c.Visit(input)
+	err := c.Visit(s.baseURL)
 	if err != nil {
-		return fmt.Errorf("%s: %w", ErrScrapingFailed, err)
+		slog.Error("Visit failed", "err", err)
 	}
 
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return
 	default:
 		c.Wait()
 	}
-	slog.InfoContext(ctx, "Finished scrapping", "url", input)
-	return nil
+	slog.InfoContext(ctx, "Finished scrapping", "url", s.baseURL)
+	return
 }

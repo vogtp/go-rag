@@ -21,7 +21,7 @@ var testScaperCmd = &cobra.Command{
 }
 
 func scapper2vecDB(ctx context.Context, args []string) error {
-	scrap, err := scraper.New(
+	scrap, err := scraper.New("https://its.unibas.ch/de/anleitungen/",
 		scraper.WithBlacklist([]string{
 			"ueber-uns", "about-us",
 			"aktuelles",
@@ -35,13 +35,10 @@ func scapper2vecDB(ctx context.Context, args []string) error {
 		return fmt.Errorf("cannot create scrapper: %w", err)
 	}
 
-	docsChannel := make(chan vecdb.EmbeddDocument, 10)
-
-	go func() {
-		if err := scrap.Call(ctx, "https://its.unibas.ch/de/anleitungen/", docsChannel); err != nil {
-			slog.Error("Cannot scrap", "err", err)
-		}
-	}()
+	docsChannel, err := scrap.Call(ctx)
+	if err != nil {
+		return err
+	}
 
 	client, err := vecdb.New(ctx, slog.Default(), vecdb.WithOllamaAddress(cfg.GetOllamaHost(ctx)))
 	if err != nil {
