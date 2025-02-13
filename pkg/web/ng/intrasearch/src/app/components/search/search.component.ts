@@ -68,6 +68,8 @@ export class SearchComponent {
       skipLocationChange: false,
       // do not trigger navigation
     });
+    this.searchResult = undefined;
+    this.message = 'Searching...';
     this.searchService
       .searchCollection(this.collection, query)
       .pipe(catchError(this.handleError))
