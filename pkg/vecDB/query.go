@@ -53,7 +53,7 @@ func (v *VecDB) Query(ctx context.Context, collection string, queryTexts []strin
 				doc.Title = t
 			}
 			if t, ok := metaData[MetaIDKey].(string); ok {
-				doc.IDField = t
+				doc.IDField = metaData[t].(string)
 			}
 			if d, ok := metaData[MetaOrigDoc].(string); ok {
 				doc.Document = d
