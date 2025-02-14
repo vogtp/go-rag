@@ -33,3 +33,7 @@ pre {
     word-wrap: break-word;
     /* Internet Explorer 5.5+ */
 }
+
+mat-card {
+    margin-bottom: 7px;
+}
