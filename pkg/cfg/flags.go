@@ -47,8 +47,15 @@ const (
 	ConfluenceBaseURL = "confluence.baseURL"
 	// ConfluenceSpaces defines the spaces to scrap
 	ConfluenceSpaces = "confluence.spaces"
+	// ConfluenceMaxAge is the maximum age a confluence page can have to be included in
+	ConfluenceMaxAge = "confluence.maxAge"
 	//VecDBUpdateIntervall is the intervall the vectorDB is updated
 	VecDBUpdateIntervall = "vecdb.update_intervall"
+)
+
+var (
+	// DefaultConfluenceMaxAge is the max age of a confluence page to be included
+	DefaultConfluenceMaxAge = 7 * 356 * 24 * time.Hour
 )
 
 func init() {
@@ -66,6 +73,7 @@ func init() {
 	pflag.String(ConfluenceKey, "", "The confluence access token")
 	pflag.String(ConfluenceBaseURL, "", "The confluence access token")
 	pflag.StringSlice(ConfluenceSpaces, nil, "The confluence spaces to scrap")
+	pflag.Duration(ConfluenceMaxAge, DefaultConfluenceMaxAge, "The maximum age a confluence page can have to be included in")
 	pflag.Duration(VecDBUpdateIntervall, 24*time.Hour, "the intervall the vectorDB is updated")
 	pflag.String(ChromaUrl, "http://localhost:8000", "the URL where chroma can be reached")
 	pflag.Int(ChromaPort, 8000, "the port chroma should be started on (0: disable)")

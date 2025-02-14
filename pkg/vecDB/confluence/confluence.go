@@ -110,7 +110,10 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 		start += res.Limit
 		total += res.Size
 		//	fmt.Printf("%s\n ^%s (%v)\n%s (%v)\n", res.Results[0].Title, res.Results[0].Links.WebUI, len(res.Results[0].Body.Storage.Value), res.Results[res.Size-1].Title, len(res.Results[res.Size-1].Body.Storage.Value))
-
+		maxAge := viper.GetDuration(cfg.ConfluenceMaxAge)
+		if maxAge < time.Minute {
+			maxAge = cfg.DefaultConfluenceMaxAge
+		}
 		for _, d := range res.Results {
 			slog := slogSpace.With("title", d.Title, "doc_url", d.Links.WebUI)
 			if ctx.Err() != nil {
@@ -134,6 +137,11 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 				c.slog.Error("Cannot parse time of confluence page", "time", t.String(), "err", err, "title", d.Title, "url", d.Links.WebUI)
 				continue
 			}
+			if time.Since(doc.Modified) > maxAge {
+				c.slog.Warn("Document is to old", "age", time.Since(doc.Modified).String(), "lastModify", doc.Modified.String(), "maxAge", maxAge.String())
+				continue
+			}
+
 			doc.MetaData["confluence_space"] = spaceKey
 			c.out <- doc
 		}
