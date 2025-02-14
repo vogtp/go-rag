@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 	"strconv"
 	"time"
 
@@ -59,23 +58,34 @@ func (srv *Server) vecDBsearch(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sizeOrig := len(docs)
-		cmpFunc := func(a, b vecdb.QueryDocument) bool {
-			return a.URL == b.URL
-		}
-		docs = slices.CompactFunc(docs, cmpFunc)
+		// srtFunc := func(a, b vecdb.QueryDocument) int {
+		// 	return strings.Compare(a.IDField, b.IDField)
+		// }
+		// slices.SortFunc(docs, srtFunc)
+		// cmpFunc := func(a, b vecdb.QueryDocument) bool {
+		// 	return strings.EqualFold(a.IDField, b.IDField)
+		// }
+		// docs = slices.CompactFunc(docs, cmpFunc)
+		keyMap := make(map[string]int)
+		data.Documents = make([]queryDoc, 0, len(docs))
+		for _, d := range docs {
+			c, found := keyMap[d.IDField]
+			keyMap[d.IDField] = c + 1
+			if found {
+				slog.Debug("removing document", "title", d.Title, "URL", d.URL, "docCnt", c)
+				continue
+			}
 
-		if sizeOrig > len(docs) {
-			slog.Warn("removed doubs", "orig", sizeOrig, "now", len(docs))
-		}
-
-		data.Documents = make([]queryDoc, len(docs))
-		for i, d := range docs {
 			qd := queryDoc{
 				QueryDocument: &d,
 				UUID:          uuid.New(),
 			}
-			data.Documents[i] = qd
+			data.Documents = append(data.Documents, qd)
 			srv.docCache.add(&qd)
+		}
+
+		if sizeOrig > len(docs) {
+			slog.Warn("removed doubs", "orig", sizeOrig, "now", len(docs))
 		}
 	}
 	data.StatusMessage = fmt.Sprintf("Duration %v - %v", time.Since(start).Truncate(time.Second), data.StatusMessage)
