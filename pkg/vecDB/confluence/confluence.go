@@ -89,12 +89,19 @@ func (c *confluence) query(ctx context.Context) {
 func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 	slogSpace := c.slog.With("space", spaceKey)
 	slogSpace.Info("starting to query space")
+	maxPageAge := viper.GetDuration(cfg.ConfluenceMaxAge)
+	if maxPageAge < time.Minute {
+		maxPageAge = cfg.DefaultConfluenceMaxAge
+	}
 	start := 0
 	total := 0
+	retryCnt := 0
+	retryMax := 10
+	retryDelay := 500 * time.Millisecond
 	for {
-		slog := slogSpace.With(slog.Group("paging", "start", start, "limit", c.queryLimit))
+		slogPage := slogSpace.With(slog.Group("paging", "start", start, "limit", c.queryLimit))
 		if ctx.Err() != nil {
-			slog.Warn("confluence canceled by context", "err", ctx.Err())
+			slogPage.Warn("confluence canceled by context", "err", ctx.Err())
 			return
 		}
 		res, err := c.api.GetContent(conflu.ContentQuery{
@@ -104,19 +111,22 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 			Expand:   []string{"space", "body.view", "version", "container", "body.storage", "metadata", "history.lastUpdated"},
 		})
 		if err != nil {
-			slog.Error("Cannot get confluence content...", "err", err, "start_index", start)
-			time.Sleep(10 * time.Millisecond)
+			// FIXME handle unauthorised errors
+			retryCnt++
+			if retryCnt > retryMax {
+				slogPage.Error("Max Retries reached, cannot get confluence content...", "err", err, "start_index", start, "retryCnt", retryCnt, "retryMax", retryMax, "retryDelay", retryDelay)
+				return
+			}
+			slogPage.Warn("Cannot get confluence content...", "err", err, "start_index", start, "retryCnt", retryCnt, "retryMax", retryMax, "retryDelay", retryDelay)
+			time.Sleep(retryDelay*time.Duration(retryCnt))
 			continue
 		}
 		start += res.Limit
 		total += res.Size
-		//	fmt.Printf("%s\n ^%s (%v)\n%s (%v)\n", res.Results[0].Title, res.Results[0].Links.WebUI, len(res.Results[0].Body.Storage.Value), res.Results[res.Size-1].Title, len(res.Results[res.Size-1].Body.Storage.Value))
-		maxAge := viper.GetDuration(cfg.ConfluenceMaxAge)
-		if maxAge < time.Minute {
-			maxAge = cfg.DefaultConfluenceMaxAge
-		}
+		retryCnt = 0
+
 		for _, d := range res.Results {
-			slog := slogSpace.With("title", d.Title, "doc_url", d.Links.WebUI)
+			slog := slogPage.With("title", d.Title, "doc_url", d.Links.WebUI)
 			if ctx.Err() != nil {
 				slog.Warn("confluence canceled by context", "err", ctx.Err())
 				return
@@ -138,8 +148,8 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 				slog.Error("Cannot parse time of confluence page", "time", t.String(), "err", err, "title", d.Title, "url", d.Links.WebUI)
 				continue
 			}
-			if time.Since(doc.Modified) > maxAge {
-				slog.Warn("Document is to old", "age", time.Since(doc.Modified).String(), "lastModify", doc.Modified.String(), "maxAge", maxAge.String())
+			if time.Since(doc.Modified) > maxPageAge {
+				slog.Warn("Document is to old", "age", time.Since(doc.Modified).String(), "lastModify", doc.Modified.String(), "maxAge", maxPageAge.String())
 				continue
 			}
 
@@ -147,9 +157,10 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 			c.out <- doc
 		}
 
-		slog.Info("confluence query batch done", "start", res.Start, "size", res.Size, "result_len", len(res.Results), "limit", res.Limit, "total", total)
+		slogPage.Info("confluence query batch done", "start", res.Start, "size", res.Size, "result_len", len(res.Results), "limit", res.Limit, "total", total)
 		if res.Limit != res.Size {
-			break
+			slogPage.Info("Indexing space done")
+			return
 		}
 	}
 }
