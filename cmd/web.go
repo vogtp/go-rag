@@ -35,12 +35,15 @@ var webStartCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("chroma would not start: %w", err)
 		}
-		
+
 		rag, err := rag.New(ctx, slog)
 		if err != nil {
 			return fmt.Errorf("cannot start rag backend: %w", err)
 		}
-		api := web.New(slog, rag)
+		api, err := web.New(ctx, slog, rag)
+		if err != nil {
+			return fmt.Errorf("cannot start http server: %w", err)
+		}
 		return api.Run(cmd.Context())
 	},
 }

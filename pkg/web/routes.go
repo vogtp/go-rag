@@ -8,14 +8,14 @@ import (
 	"github.com/vogtp/go-angular"
 )
 
-func (srv *Server) routes() {
+func (srv *Server) routes() error {
 
 	fsys, err := fs.Sub(assetData, "ng/intrasearch/dist/intrasearch/browser")
 	if err != nil {
 		panic(err)
 	}
 	ngFS := angular.FileSystem(fsys)
-	srv.mux.Handle("/", http.FileServer(ngFS))
+	srv.oidcMux.Handle("/", http.FileServer(ngFS))
 	srv.mux.Handle("/static/", http.StripPrefix(srv.baseURL, http.FileServer(http.FS(assetData))))
 
 	srv.openAiAPI("/api/")
@@ -25,6 +25,7 @@ func (srv *Server) routes() {
 	// srv.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	// 	http.Redirect(w, r, "/search/", http.StatusTemporaryRedirect)
 	// })
+	return nil
 }
 
 func (srv *Server) openAiAPI(apiBasePath string) {

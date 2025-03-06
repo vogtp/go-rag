@@ -6,8 +6,6 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.2.2
 	github.com/docker/docker v25.0.5+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/go-chi/chi/v5 v5.2.1
-	github.com/go-chi/httplog/v2 v2.1.1
 	github.com/gocolly/colly v1.2.0
 	github.com/graze/go-throttled v0.3.1
 	github.com/matoous/go-nanoid v1.5.1
@@ -19,6 +17,8 @@ require (
 	github.com/tmc/langchaingo v0.1.12
 	github.com/virtomize/confluence-go-api v1.4.6
 	github.com/vogtp/go-angular v0.0.0-20240709155651-b3c8f48d6254
+	github.com/zitadel/logging v0.6.1
+	github.com/zitadel/oidc/v3 v3.35.0
 	golang.org/x/time v0.5.0
 )
 
@@ -32,17 +32,21 @@ require (
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80 // indirect
 	github.com/magefile/mage v1.14.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
+	github.com/muhlemmer/gu v0.3.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
+	github.com/zitadel/schema v1.3.0 // indirect
 	gitlab.com/golang-commonmark/html v0.0.0-20191124015941-a22733972181 // indirect
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a // indirect
@@ -55,7 +59,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/oauth2 v0.26.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
@@ -116,7 +121,7 @@ require (
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

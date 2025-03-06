@@ -16,6 +16,9 @@ const (
 	// WebListen set the address the webserver should listen on
 	WebListen = "web.listen"
 
+	// HTTPProxy enables SOCKS5 proxies for http requests
+	HTTPProxy = "http.proxy"
+
 	// LogLevel error warn info debug
 	LogLevel = "log.level"
 	// LogSource should we log the source
@@ -65,6 +68,7 @@ func init() {
 	pflag.Bool(LogSource, false, "Log the source line")
 	pflag.Bool(LogJson, false, "Log in json")
 
+	pflag.String(HTTPProxy, "", "enables SOCKS5 proxies for http requests, eg. localhost:1928")
 	pflag.String(WebListen, ":8080", "Address the webserver should listen on")
 
 	pflag.String(ModelDefault, "llama3.2-vision", "The default model when no model is given")

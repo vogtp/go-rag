@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/vogtp/rag/pkg/cfg"
 	"github.com/vogtp/rag/pkg/rag"
+	"github.com/vogtp/rag/pkg/web/oidc"
 )
 
 // Server is the struct holding the webserver
@@ -19,6 +21,7 @@ type Server struct {
 
 	httpSrv *http.Server
 	mux     *http.ServeMux
+	oidcMux *oidc.Mux
 
 	rag        *rag.Manager
 	lastEmbedd map[string]time.Time
@@ -26,7 +29,7 @@ type Server struct {
 }
 
 // New creates a new webserver
-func New(slog *slog.Logger, rag *rag.Manager) *Server {
+func New(ctx context.Context, slog *slog.Logger, rag *rag.Manager) (*Server, error) {
 	srv := &Server{
 		slog:       slog,
 		rag:        rag,
@@ -44,8 +47,18 @@ func New(slog *slog.Logger, rag *rag.Manager) *Server {
 	srv.slog = srv.slog.With("listem_addr", addr)
 	srv.httpSrv.Addr = addr
 	srv.mux = http.NewServeMux()
-
-	return srv
+	oidcCfg := oidc.Config{
+		ClientID:     "go_demo_app",
+		ClientSecret: "eb3oodeNuphaviej",
+		Issuer:       "https://its-am-ngi-dev-1.its.unibas.ch:8443/auth/oauth2/alpha",
+		RedirectURI:  "http://localhost:4444/auth/callback",
+	}
+	om, err := oidc.NewMux(ctx, srv.slog, srv.mux, addr, oidcCfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create oidc mux: %w", err)
+	}
+	srv.oidcMux = om
+	return srv, nil
 }
 
 // OIDC Client
@@ -58,7 +71,9 @@ func (srv *Server) Run(ctx context.Context) error {
 		slog.Error("Cannot start periodic embedding", "err", err)
 	}
 
-	srv.routes()
+	if err := srv.routes(); err != nil {
+		return err
+	}
 
 	srv.slog.Warn("Listen for incoming requests")
 	srv.httpSrv.Handler = srv.mux
