@@ -92,6 +92,7 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 	start := 0
 	total := 0
 	for {
+		slog := slogSpace.With(slog.Group("paging", "start", start, "limit", c.queryLimit))
 		if ctx.Err() != nil {
 			slog.Warn("confluence canceled by context", "err", ctx.Err())
 			return
@@ -134,11 +135,11 @@ func (c *confluence) querySpace(ctx context.Context, spaceKey string) {
 			if t, err := time.Parse(time.RFC3339Nano, d.History.LastUpdated.When); err == nil {
 				doc.Modified = t
 			} else {
-				c.slog.Error("Cannot parse time of confluence page", "time", t.String(), "err", err, "title", d.Title, "url", d.Links.WebUI)
+				slog.Error("Cannot parse time of confluence page", "time", t.String(), "err", err, "title", d.Title, "url", d.Links.WebUI)
 				continue
 			}
 			if time.Since(doc.Modified) > maxAge {
-				c.slog.Warn("Document is to old", "age", time.Since(doc.Modified).String(), "lastModify", doc.Modified.String(), "maxAge", maxAge.String())
+				slog.Warn("Document is to old", "age", time.Since(doc.Modified).String(), "lastModify", doc.Modified.String(), "maxAge", maxAge.String())
 				continue
 			}
 
