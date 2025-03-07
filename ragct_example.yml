@@ -1,0 +1,27 @@
+log:
+  level: info
+  source:
+    true
+    #  json: true
+web:
+  listen: ":4444"
+oidc:
+  client_id: "OIDC_CLIENT_ID"
+  client_secret: "S3cret"
+  issuer: "https://example.net/auth/endpoint"
+  redirect_uri: "http://localhost:4444/auth/callback"
+ollama:
+  hosts:
+    - "http://ollama.host.example.com:11434"
+model:
+#  embedding: "bge-m3"
+#  default: "deepseek-r1:32b"
+vecdb:
+  update_intervall: 24m
+confluence:
+  key: "CONFLUENCE_API_KEY"
+  baseURL: "https://confluence.example.net/"
+  #maxAge: 7*356*24h
+  spaces:
+    - "SPACE_KEY"
+    - "AN_OTHER_SPACE"
