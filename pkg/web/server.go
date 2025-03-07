@@ -48,10 +48,10 @@ func New(ctx context.Context, slog *slog.Logger, rag *rag.Manager) (*Server, err
 	srv.httpSrv.Addr = addr
 	srv.mux = http.NewServeMux()
 	oidcCfg := oidc.Config{
-		ClientID:     "go_demo_app",
-		ClientSecret: "eb3oodeNuphaviej",
-		Issuer:       "https://its-am-ngi-dev-1.its.unibas.ch:8443/auth/oauth2/alpha",
-		RedirectURI:  "http://localhost:4444/auth/callback",
+		ClientID:     viper.GetString(cfg.OIDCClientID),
+		ClientSecret: viper.GetString(cfg.OIDCClientSecret),
+		Issuer:       viper.GetString(cfg.OIDCIssuer),
+		RedirectURI:  viper.GetString(cfg.OIDCRedirectURI),
 	}
 	om, err := oidc.NewMux(ctx, srv.slog, srv.mux, addr, oidcCfg)
 	if err != nil {

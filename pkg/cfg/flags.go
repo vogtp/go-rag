@@ -54,6 +54,15 @@ const (
 	ConfluenceMaxAge = "confluence.maxAge"
 	//VecDBUpdateIntervall is the intervall the vectorDB is updated
 	VecDBUpdateIntervall = "vecdb.update_intervall"
+
+	// OIDCClientID OIDC Client ID
+	OIDCClientID = "oidc.client_id"
+	// OIDCClientSecret OIDC Secret
+	OIDCClientSecret = "oidc.client_secret"
+	// OIDCIssuer OIDC issuer (AKA auth endpoint)
+	OIDCIssuer = "oidc.issuer"
+	// OIDCRedirectURI OIDC redirect URI (AKA local auth callback)
+	OIDCRedirectURI = "oidc.redirect_uri"
 )
 
 var (
@@ -82,4 +91,8 @@ func init() {
 	pflag.String(ChromaUrl, "http://localhost:8000", "the URL where chroma can be reached")
 	pflag.Int(ChromaPort, 8000, "the port chroma should be started on (0: disable)")
 	pflag.String(ChromaContainer, "chromadb/chroma:0.5.23", "chroma container to pull")
+	pflag.String(OIDCClientID, "", "OIDCClientID OIDC Client ID")
+	pflag.String(OIDCClientSecret, "", "OIDC Secret")
+	pflag.String(OIDCIssuer, "", "OIDC issuer (AKA auth endpoint)")
+	pflag.String(OIDCRedirectURI, "", "OIDC redirect URI (AKA local auth callback)")
 }
